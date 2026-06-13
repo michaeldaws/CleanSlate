@@ -1,4 +1,4 @@
-const CACHE = 'notes-v1';
+const CACHE = 'cs-v2';
 const ASSETS = [
   './',
   './index.html',

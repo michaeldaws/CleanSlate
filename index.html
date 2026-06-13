@@ -10,6 +10,9 @@
   <meta name="apple-mobile-web-app-title" content="CleanSlate">
   <title>CleanSlate</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
   <style>
     /* ── Variables ─────────────────────────────────────── */
@@ -19,12 +22,13 @@
       --text:    #0f172a;
       --muted:   #64748b;
       --border:  #e2e8f0;
-      --shadow:  0 1px 3px rgba(0,0,0,.07), 0 2px 8px rgba(0,0,0,.05);
+      --shadow:  0 1px 3px rgba(0,0,0,.07), 0 2px 8px rgba(0,0,0,.04);
       --radius:  14px;
       --slate:   #1e293b;
       --chalk:   #f8fafc;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bot: env(safe-area-inset-bottom, 0px);
+      --font: 'Raleway', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -41,84 +45,120 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--font);
       background: var(--bg);
       color: var(--text);
       overscroll-behavior: none;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ── Header ────────────────────────────────────────── */
+    /* ── Screens ───────────────────────────────────────── */
+    .screen { display: none; flex-direction: column; height: 100%; min-height: 100dvh; }
+    .screen.active { display: flex; }
+
+    /* ── Onboarding / Reconnect ────────────────────────── */
+    .connect-screen {
+      align-items: center; justify-content: center;
+      padding: 32px 28px; text-align: center; gap: 0;
+    }
+    .connect-screen .cs-logo {
+      font-size: 64px; margin-bottom: 20px;
+    }
+    .connect-screen h1 {
+      font-size: 28px; font-weight: 800; color: var(--text);
+      letter-spacing: 0.5px; margin-bottom: 8px;
+    }
+    .connect-screen .sub {
+      font-size: 14px; font-weight: 500; color: var(--muted);
+      line-height: 1.6; margin-bottom: 32px; max-width: 280px;
+    }
+    .connect-screen .pill-info {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 18px;
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      line-height: 1.6; margin-bottom: 28px; text-align: left;
+    }
+    .connect-screen .pill-info strong { color: var(--text); font-weight: 700; }
+    .btn-big {
+      width: 100%; max-width: 320px;
+      padding: 16px 24px; border-radius: 16px;
+      background: var(--slate); color: var(--chalk);
+      border: none; font-size: 16px; font-weight: 800;
+      font-family: var(--font); cursor: pointer;
+      box-shadow: 0 4px 16px rgba(15,23,42,.3);
+      transition: transform .15s;
+    }
+    .btn-big:active { transform: scale(0.97); }
+    .btn-big-outline {
+      width: 100%; max-width: 320px;
+      padding: 14px 24px; border-radius: 16px;
+      background: none; color: var(--muted);
+      border: 1.5px solid var(--border);
+      font-size: 14px; font-weight: 600;
+      font-family: var(--font); cursor: pointer; margin-top: 10px;
+    }
+    .folder-name {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      margin-bottom: 20px; padding: 8px 16px;
+      background: var(--surface); border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── App screen ────────────────────────────────────── */
+    #screen-app { display: none; flex-direction: column; min-height: 100dvh; }
+    #screen-app.active { display: flex; }
+
+    /* ── App Header ────────────────────────────────────── */
     #app-header {
-      position: sticky; top: 0; z-index: 50;
+      flex-shrink: 0;
       background: var(--slate);
       padding: calc(12px + var(--safe-top)) 16px 12px;
       display: flex; align-items: center; gap: 8px;
     }
-    #app-header h1 {
-      flex: 1; font-size: 20px; font-weight: 800;
-      color: var(--chalk); letter-spacing: -0.3px;
-    }
+    #app-header h1 { flex: 1; font-size: 20px; font-weight: 800; color: var(--chalk); letter-spacing: 0.5px; }
     .hdr-btn {
-      background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 10px;
-      padding: 6px 11px;
-      font-size: 13px; color: var(--chalk);
-      cursor: pointer; white-space: nowrap;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+      border-radius: 10px; padding: 6px 11px; font-size: 13px; font-weight: 600;
+      color: var(--chalk); cursor: pointer; white-space: nowrap; font-family: var(--font);
     }
 
-    /* ── Search + controls ─────────────────────────────── */
+    /* ── Controls ──────────────────────────────────────── */
     #controls {
-      background: var(--surface);
+      flex-shrink: 0; background: var(--surface);
       border-bottom: 1px solid var(--border);
       padding: 10px 16px 0;
-      position: sticky;
-      top: calc(44px + var(--safe-top));
-      z-index: 40;
     }
     #search-input {
       width: 100%; padding: 9px 16px;
       background: var(--bg); border: 1px solid var(--border);
-      border-radius: 24px; font-size: 14px; color: var(--text);
-      outline: none; transition: border-color .2s;
+      border-radius: 24px; font-size: 14px; font-weight: 500;
+      color: var(--text); outline: none; font-family: var(--font);
+      transition: border-color .2s;
     }
     #search-input:focus { border-color: #64748b; }
-
-    #filter-sort-row {
-      display: flex; align-items: center; gap: 8px; padding: 10px 0;
-    }
-    #filter-pills {
-      display: flex; gap: 6px;
-      overflow-x: auto; scrollbar-width: none; flex: 1;
-    }
+    #filter-sort-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; }
+    #filter-pills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; }
     #filter-pills::-webkit-scrollbar { display: none; }
     .filter-pill {
-      display: flex; align-items: center; gap: 5px;
-      white-space: nowrap; padding: 5px 11px; border-radius: 20px;
-      font-size: 12px; font-weight: 600; cursor: pointer;
-      border: 1.5px solid var(--border);
+      display: flex; align-items: center; gap: 5px; white-space: nowrap;
+      padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      cursor: pointer; border: 1.5px solid var(--border);
       background: var(--surface); color: var(--muted);
-      transition: all .15s; flex-shrink: 0;
+      transition: all .15s; flex-shrink: 0; font-family: var(--font);
     }
     .filter-pill .pdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .filter-pill.active { color: white; border-color: transparent; }
     .sort-btn {
-      flex-shrink: 0; background: var(--bg);
-      border: 1.5px solid var(--border); border-radius: 10px;
-      padding: 5px 10px; font-size: 11px; font-weight: 600;
-      color: var(--muted); cursor: pointer; white-space: nowrap;
+      flex-shrink: 0; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 5px 10px; font-size: 11px; font-weight: 700;
+      color: var(--muted); cursor: pointer; white-space: nowrap; font-family: var(--font);
     }
 
     /* ── Cards ─────────────────────────────────────────── */
-    #cards-list {
-      padding: 10px 16px calc(80px + var(--safe-bot));
-      display: grid; gap: 10px;
-    }
+    #cards-list { flex: 1; overflow-y: auto; padding: 10px 16px calc(80px + var(--safe-bot)); display: grid; gap: 10px; align-content: start; }
     .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
     .empty-icon  { font-size: 48px; margin-bottom: 12px; }
-    .empty-msg   { font-size: 14px; line-height: 1.6; }
-
+    .empty-msg   { font-size: 14px; font-weight: 500; line-height: 1.6; }
     .card {
       background: var(--surface); border-radius: var(--radius);
       box-shadow: var(--shadow); overflow: hidden; cursor: pointer;
@@ -126,163 +166,124 @@
       -webkit-user-select: none; user-select: none;
     }
     .card:active { transform: scale(0.976); box-shadow: none; }
-    .card-bar  { height: 5px; }
-    .card-body { padding: 11px 14px 10px; }
-    .card-title {
-      font-size: 15px; font-weight: 650;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      margin-bottom: 3px;
-    }
+    .card-bar    { height: 5px; }
+    .card-body   { padding: 11px 14px 10px; }
+    .card-title  { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
     .card-preview {
-      font-size: 13px; color: var(--muted); line-height: 1.5;
-      display: -webkit-box; -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical; overflow: hidden;
+      font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
     .card-footer { display: flex; align-items: center; gap: 8px; margin-top: 9px; }
-    .card-badge {
-      font-size: 11px; font-weight: 600;
-      padding: 2px 8px; border-radius: 10px; color: white;
-    }
-    .card-date   { font-size: 11px; color: var(--muted); flex: 1; text-align: right; }
+    .card-badge  { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; color: white; }
+    .card-date   { font-size: 11px; font-weight: 500; color: var(--muted); flex: 1; text-align: right; }
     .card-thumbs { display: flex; gap: 4px; }
     .card-thumb  { width: 30px; height: 30px; object-fit: cover; border-radius: 5px; }
 
     /* ── FAB ───────────────────────────────────────────── */
     #fab {
-      position: fixed;
-      bottom: calc(24px + var(--safe-bot)); right: 22px;
+      position: fixed; bottom: calc(24px + var(--safe-bot)); right: 22px;
       width: 58px; height: 58px; border-radius: 50%;
       background: var(--slate); color: var(--chalk);
       border: none; font-size: 32px; line-height: 1;
-      box-shadow: 0 4px 16px rgba(15,23,42,.4);
-      cursor: pointer; display: flex; align-items: center;
-      justify-content: center; z-index: 100;
-      transition: transform .15s;
+      box-shadow: 0 4px 18px rgba(15,23,42,.4);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      z-index: 100; transition: transform .15s;
     }
     #fab:active { transform: scale(0.88); }
 
-    /* ── Modals (shared) ───────────────────────────────── */
+    /* ── Modal base ────────────────────────────────────── */
     .modal {
       position: fixed; inset: 0; z-index: 200;
       background: var(--bg); display: flex; flex-direction: column;
-      transform: translateY(100%);
-      transition: transform .28s cubic-bezier(.4,0,.2,1);
+      transform: translateY(100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
     }
     .modal.open { transform: translateY(0); }
-
-    /* modal header variants */
     .mhdr-slate {
-      background: var(--slate);
+      flex-shrink: 0; background: var(--slate);
       padding: calc(10px + var(--safe-top)) 14px 10px;
       display: flex; align-items: center; gap: 8px;
     }
     .mhdr-plain {
-      background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; background: var(--surface); border-bottom: 1px solid var(--border);
       padding: calc(10px + var(--safe-top)) 14px 10px;
       display: flex; align-items: center; gap: 8px;
     }
-    .icon-btn-light { background: none; border: none; font-size: 22px; color: var(--chalk); cursor: pointer; padding: 4px; opacity: .8; }
-    .icon-btn-dark  { background: none; border: none; font-size: 22px; color: var(--text);  cursor: pointer; padding: 4px; }
-    .mhdr-title-light { flex: 1; font-size: 15px; font-weight: 700; color: var(--chalk); }
-    .mhdr-title-dark  { flex: 1; font-size: 15px; font-weight: 700; color: var(--text); }
-    .btn-outline-light {
-      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
-      border-radius: 9px; padding: 5px 12px; font-size: 13px;
-      color: var(--chalk); cursor: pointer;
-    }
-    .btn-chalk {
-      background: var(--chalk); border: none; border-radius: 9px;
-      padding: 6px 16px; font-size: 13px; font-weight: 700;
-      color: var(--slate); cursor: pointer;
-    }
-    .btn-plain {
-      background: none; border: 1px solid var(--border);
-      border-radius: 9px; padding: 5px 12px; font-size: 13px;
-      color: var(--muted); cursor: pointer;
-    }
-    .btn-accent {
-      background: var(--slate); border: none; border-radius: 9px;
-      padding: 6px 16px; font-size: 13px; font-weight: 700;
-      color: var(--chalk); cursor: pointer;
-    }
-    .btn-danger {
-      background: none; border: 1px solid #ef4444;
-      border-radius: 9px; padding: 5px 12px; font-size: 13px;
-      color: #ef4444; cursor: pointer;
-    }
+    .ibl { background:none; border:none; font-size:22px; color:var(--chalk); cursor:pointer; padding:4px; opacity:.8; }
+    .ibd { background:none; border:none; font-size:22px; color:var(--text);  cursor:pointer; padding:4px; }
+    .ttll { flex:1; font-size:15px; font-weight:800; color:var(--chalk); font-family:var(--font); }
+    .ttld { flex:1; font-size:15px; font-weight:800; color:var(--text);  font-family:var(--font); }
+    .b-ol  { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:9px; padding:5px 12px; font-size:13px; font-weight:600; color:var(--chalk); cursor:pointer; font-family:var(--font); }
+    .b-ck  { background:var(--chalk); border:none; border-radius:9px; padding:6px 16px; font-size:13px; font-weight:800; color:var(--slate); cursor:pointer; font-family:var(--font); }
+    .b-pl  { background:none; border:1px solid var(--border); border-radius:9px; padding:6px 14px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; font-family:var(--font); }
+    .b-ac  { background:var(--slate); border:none; border-radius:9px; padding:6px 16px; font-size:13px; font-weight:800; color:var(--chalk); cursor:pointer; font-family:var(--font); }
+    .b-dn  { background:none; border:1px solid #ef4444; border-radius:9px; padding:5px 12px; font-size:13px; font-weight:600; color:#ef4444; cursor:pointer; font-family:var(--font); }
 
-    /* ── Editor body ───────────────────────────────────── */
-    .modal-body {
-      flex: 1; overflow-y: auto; padding: 14px 16px;
-      display: flex; flex-direction: column; gap: 12px;
+    /* ── Editor ────────────────────────────────────────── */
+    #editor-meta {
+      flex-shrink: 0; background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 8px 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .lbl-wrap {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 8px 5px 10px;
+      flex-shrink: 0; position: relative; cursor: pointer;
+    }
+    #label-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; transition: background .2s; }
+    #label-select {
+      background: none; border: none; outline: none;
+      font-size: 13px; font-weight: 700; color: var(--text);
+      font-family: var(--font); appearance: none; -webkit-appearance: none;
+      cursor: pointer; padding-right: 14px;
+    }
+    .lbl-wrap::after { content: '▾'; font-size: 10px; color: var(--muted); pointer-events: none; }
+    #note-title {
+      flex: 1; background: none; border: none; outline: none;
+      font-size: 15px; font-weight: 700; color: var(--text);
+      font-family: var(--font); min-width: 0;
+    }
+    #note-title::placeholder { color: var(--muted); font-weight: 500; }
+    #editor-scroll {
+      flex: 1; overflow-y: auto; min-height: 0;
+      padding: 10px 14px calc(10px + var(--safe-bot));
+      display: flex; flex-direction: column; gap: 10px;
       overscroll-behavior: contain;
     }
-
-    /* label grid */
-    .label-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    .label-chip {
-      display: flex; align-items: center; justify-content: center;
-      padding: 7px 4px; border-radius: 10px; font-size: 11px;
-      font-weight: 600; cursor: pointer;
-      border: 2px solid transparent; color: white; opacity: .65;
-      transition: all .12s;
-    }
-    .label-chip.active { opacity: 1; border-color: var(--text); transform: scale(1.04); }
-
-    /* title input */
-    #note-title {
-      width: 100%; background: none; border: none;
-      border-bottom: 1px solid var(--border);
-      padding: 8px 0; font-size: 19px; font-weight: 700;
-      color: var(--text); outline: none;
-    }
-    #note-title::placeholder { color: var(--muted); font-weight: 400; }
-
-    /* markdown toolbar */
-    #md-toolbar { display: flex; gap: 5px; flex-wrap: wrap; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    #md-toolbar { display: flex; gap: 4px; flex-wrap: wrap; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
     #md-toolbar button {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 6px; padding: 5px 9px; font-size: 12px;
-      font-weight: 600; color: var(--text); cursor: pointer;
-      font-family: 'Courier New', monospace;
+      border-radius: 6px; padding: 5px 8px; font-size: 12px; font-weight: 700;
+      color: var(--text); cursor: pointer; font-family: 'Courier New', monospace; line-height: 1;
     }
-
-    /* content textarea */
+    #md-toolbar .tb-sep { width: 1px; background: var(--border); margin: 2px 4px; align-self: stretch; flex-shrink: 0; }
+    #md-toolbar .tb-img { font-size: 15px; font-family: var(--font); font-weight: 400; padding: 4px 7px; }
     #note-content {
-      width: 100%; min-height: 180px; background: none; border: none;
-      font-size: 14.5px; line-height: 1.65; color: var(--text);
-      outline: none; resize: none; font-family: 'Courier New', Courier, monospace;
+      width: 100%; flex: 1; min-height: 160px;
+      background: none; border: none; outline: none; resize: none;
+      font-size: 14px; line-height: 1.7; color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
     }
-    #note-content::placeholder { color: var(--muted); font-family: inherit; }
+    #note-content::placeholder { color: var(--muted); font-family: var(--font); font-size: 14px; }
 
     /* markdown render */
-    .md-render { font-size: 14.5px; line-height: 1.7; color: var(--text); }
+    .md-render { font-size: 14px; line-height: 1.75; color: var(--text); font-family: var(--font); }
     .md-render h1 { font-size: 22px; font-weight: 800; margin: 6px 0 10px; }
     .md-render h2 { font-size: 18px; font-weight: 700; margin: 6px 0 8px; }
     .md-render h3 { font-size: 15px; font-weight: 700; margin: 6px 0 6px; }
     .md-render p  { margin-bottom: 10px; }
-    .md-render ul, .md-render ol { margin: 0 0 10px 22px; }
+    .md-render ul, .md-render ol { margin: 0 0 10px 20px; }
     .md-render li { margin-bottom: 3px; }
     .md-render code { background: var(--border); padding: 1px 6px; border-radius: 4px; font-size: 13px; font-family: 'Courier New', monospace; }
     .md-render pre { background: var(--border); padding: 12px; border-radius: 8px; overflow-x: auto; margin-bottom: 10px; }
     .md-render pre code { background: none; padding: 0; }
-    .md-render blockquote { border-left: 3px solid #64748b; padding-left: 14px; color: var(--muted); margin-bottom: 10px; }
+    .md-render blockquote { border-left: 3px solid #64748b; padding-left: 14px; color: var(--muted); margin-bottom: 10px; font-style: italic; }
     .md-render a { color: #3b82f6; }
     .md-render hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
     .md-render img { max-width: 100%; border-radius: 10px; margin: 6px 0; }
-    .md-render strong { font-weight: 700; }
-    .md-render em { font-style: italic; }
-    .md-render table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
-    .md-render th, .md-render td { border: 1px solid var(--border); padding: 6px 10px; font-size: 13px; }
+    .md-render strong { font-weight: 800; }
+    .md-render table { border-collapse: collapse; width: 100%; margin-bottom: 10px; font-size: 13px; }
+    .md-render th, .md-render td { border: 1px solid var(--border); padding: 6px 10px; }
     .md-render th { background: var(--border); font-weight: 700; }
-
-    /* image toolbar */
-    #img-toolbar { display: flex; gap: 8px; }
-    .img-btn {
-      flex: 1; padding: 9px 4px; background: var(--surface);
-      border: 1px solid var(--border); border-radius: 10px;
-      font-size: 12px; color: var(--muted); cursor: pointer; text-align: center;
-    }
 
     /* editor images */
     #editor-images { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -297,115 +298,127 @@
     }
 
     /* ── View modal ────────────────────────────────────── */
-    #view-modal .view-bar { height: 5px; }
-    #view-modal .view-meta { font-size: 12px; color: var(--muted); }
+    #view-modal .view-bar { height: 5px; flex-shrink: 0; }
+    #view-body {
+      flex: 1; overflow-y: auto; min-height: 0;
+      padding: 16px; display: flex; flex-direction: column; gap: 8px;
+      overscroll-behavior: contain;
+    }
+    .view-meta { font-size: 12px; font-weight: 600; color: var(--muted); }
 
     /* ── Settings modal ────────────────────────────────── */
-    .settings-section {
-      background: var(--surface); border-radius: var(--radius);
-      overflow: hidden; box-shadow: var(--shadow);
+    .settings-scroll {
+      flex: 1; overflow-y: auto; min-height: 0;
+      padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;
+      overscroll-behavior: contain;
     }
-    .settings-section-title {
-      font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .8px; color: var(--muted);
-      padding: 14px 16px 8px;
+    .settings-footer {
+      flex-shrink: 0; display: flex; gap: 8px;
+      padding: 12px 16px calc(12px + var(--safe-bot));
+      background: var(--surface); border-top: 1px solid var(--border);
     }
-    .settings-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 16px; border-top: 1px solid var(--border);
-    }
-    .settings-row:first-of-type { border-top: none; }
-    .settings-row label { flex: 1; font-size: 14px; }
-    .settings-row p { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-    /* label editor rows */
-    .label-edit-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 16px; border-top: 1px solid var(--border);
-    }
-    .label-edit-row:first-of-type { border-top: none; }
-    .color-swatch {
-      width: 32px; height: 32px; border-radius: 8px;
-      border: 2px solid rgba(0,0,0,.1); cursor: pointer;
-      padding: 0; flex-shrink: 0; overflow: hidden;
-      position: relative;
-    }
-    .color-swatch input[type=color] {
-      position: absolute; inset: -4px; width: calc(100% + 8px);
-      height: calc(100% + 8px); opacity: 0; cursor: pointer;
-    }
-    .label-name-input {
-      flex: 1; padding: 7px 10px; background: var(--bg);
-      border: 1px solid var(--border); border-radius: 8px;
-      font-size: 14px; color: var(--text); outline: none;
-    }
-    .label-name-input:focus { border-color: #64748b; }
-
-    /* sync buttons */
+    .settings-footer .b-pl  { flex: 1; }
+    .settings-footer .b-ac  { flex: 2; }
+    .s-section { background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    .s-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); padding: 14px 16px 8px; }
+    .s-pad { padding: 0 16px 14px; display: flex; flex-direction: column; gap: 8px; }
     .sync-btn {
-      width: 100%; padding: 12px;
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 10px; font-size: 14px; font-weight: 600;
-      color: var(--text); cursor: pointer; text-align: left;
-      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 12px 14px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer;
+      text-align: left; display: flex; align-items: center; gap: 12px; font-family: var(--font);
     }
-    .sync-btn + .sync-btn { margin-top: 8px; }
     .sync-icon { font-size: 20px; flex-shrink: 0; }
-    .sync-desc { font-size: 12px; color: var(--muted); font-weight: 400; }
+    .sync-desc { font-size: 12px; font-weight: 500; color: var(--muted); margin-top: 1px; }
+    .lbl-edit-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-top: 1px solid var(--border); }
+    .lbl-edit-row:first-of-type { border-top: none; }
+    .color-swatch { width: 32px; height: 32px; border-radius: 8px; border: 2px solid rgba(0,0,0,.1); overflow: hidden; position: relative; flex-shrink: 0; cursor: pointer; }
+    .color-swatch input[type=color] { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); opacity: 0; cursor: pointer; }
+    .lbl-name-inp { flex: 1; padding: 7px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text); outline: none; font-family: var(--font); }
+    .lbl-name-inp:focus { border-color: #64748b; }
+    .folder-row { display: flex; align-items: center; gap: 10px; padding: 12px 16px; }
+    .folder-row-info { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .folder-row-sub  { font-size: 11px; font-weight: 500; color: var(--muted); }
 
-    /* toast */
+    /* ── Toast ─────────────────────────────────────────── */
     #toast {
-      position: fixed; bottom: calc(20px + var(--safe-bot)); left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: #1e293b; color: white;
-      padding: 10px 20px; border-radius: 20px;
-      font-size: 13px; font-weight: 600;
-      opacity: 0; transition: all .3s; z-index: 999;
-      pointer-events: none; white-space: nowrap;
+      position: fixed; bottom: calc(22px + var(--safe-bot)); left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #1e293b; color: white; padding: 10px 20px; border-radius: 20px;
+      font-size: 13px; font-weight: 700; font-family: var(--font);
+      opacity: 0; transition: all .3s; z-index: 999; pointer-events: none; white-space: nowrap;
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
 
-<!-- ── App Header ──────────────────────────────────────── -->
-<header id="app-header">
+<!-- ══ ONBOARDING SCREEN (first time) ═════════════════ -->
+<div id="screen-onboarding" class="screen connect-screen">
+  <div class="cs-logo">🪨</div>
   <h1>CleanSlate</h1>
-  <button class="hdr-btn" onclick="openSettings()">⚙ Labels</button>
-  <button class="hdr-btn" onclick="exportMarkdown()">⬇ MD</button>
-</header>
-
-<!-- ── Search + Filter ────────────────────────────────── -->
-<div id="controls">
-  <input id="search-input" type="search" placeholder="Search notes…" autocomplete="off" oninput="renderCards()">
-  <div id="filter-sort-row">
-    <div id="filter-pills"></div>
-    <button class="sort-btn" id="sort-btn" onclick="cycleSort()">↓ Newest</button>
+  <p class="sub">Your personal notes, stored as a file on your device.</p>
+  <div class="pill-info">
+    <strong>Notes are stored in a file you choose</strong> — not inside the browser.
+    Clearing browser data, cache, or reinstalling Chrome will never delete your notes.
   </div>
+  <button class="btn-big" onclick="pickDirectory()">Choose Notes Folder</button>
 </div>
 
-<!-- ── Cards ──────────────────────────────────────────── -->
-<div id="cards-list"></div>
+<!-- ══ RECONNECT SCREEN (returning user) ══════════════ -->
+<div id="screen-reconnect" class="screen connect-screen">
+  <div class="cs-logo">🪨</div>
+  <h1>CleanSlate</h1>
+  <p class="sub">Tap below to reconnect to your notes.</p>
+  <div class="folder-name" id="reconnect-folder-name">…</div>
+  <button class="btn-big" onclick="reconnect()">Open My Notes</button>
+  <button class="btn-big-outline" onclick="pickDirectory()">Choose a Different Folder</button>
+</div>
 
-<!-- ── FAB ────────────────────────────────────────────── -->
-<button id="fab" onclick="openEditor()" title="New note">＋</button>
+<!-- ══ APP SCREEN ════════════════════════════════════ -->
+<div id="screen-app" class="screen" style="display:none">
+  <header id="app-header">
+    <h1>CleanSlate</h1>
+    <button class="hdr-btn" onclick="openSettings()">⚙ Labels</button>
+    <button class="hdr-btn" onclick="exportMarkdown()">⬇ MD</button>
+  </header>
+  <div id="controls">
+    <input id="search-input" type="search" placeholder="Search notes…" autocomplete="off" oninput="renderCards()">
+    <div id="filter-sort-row">
+      <div id="filter-pills"></div>
+      <button class="sort-btn" id="sort-btn" onclick="cycleSort()">↓ Newest</button>
+    </div>
+  </div>
+  <div id="cards-list"></div>
+  <button id="fab" onclick="openEditor()">＋</button>
+</div>
 
-<!-- ── Toast ──────────────────────────────────────────── -->
+<!-- ══ Toast ══════════════════════════════════════════ -->
 <div id="toast"></div>
+
+<!-- Hidden file inputs -->
+<input id="file-input"   type="file" accept="image/*"                   style="display:none" onchange="handleFile(event)">
+<input id="cam-input"    type="file" accept="image/*" capture="environment" style="display:none" onchange="handleFile(event)">
+<input id="import-input" type="file" accept=".json,application/json"    style="display:none" onchange="importJSON(event)">
 
 <!-- ══════════════════════════════════════════════════════
      EDITOR MODAL
-══════════════════════════════════════════════════════ -->
+════════════════════════════════════════════════════════ -->
 <div class="modal" id="editor-modal">
   <div class="mhdr-slate">
-    <button class="icon-btn-light" onclick="closeEditor()">←</button>
-    <span class="mhdr-title-light" id="editor-label">New Note</span>
-    <button class="btn-outline-light" id="preview-btn" onclick="togglePreview()">Preview</button>
-    <button class="btn-chalk" onclick="saveNote()">Save</button>
+    <button class="ibl" onclick="closeEditor()">←</button>
+    <span class="ttll" id="editor-label">New Note</span>
+    <button class="b-ol" id="preview-btn" onclick="togglePreview()">Preview</button>
+    <button class="b-ck" onclick="saveNote()">Save</button>
   </div>
-  <div class="modal-body">
-    <div id="label-grid" class="label-grid"></div>
+  <div id="editor-meta">
+    <div class="lbl-wrap">
+      <span id="label-dot"></span>
+      <select id="label-select" onchange="onLabelChange()"></select>
+    </div>
     <input id="note-title" type="text" placeholder="Title (optional)">
+  </div>
+  <div id="editor-scroll">
     <div id="md-toolbar">
       <button onclick="insertMd('**','**')">B</button>
       <button onclick="insertMd('*','*')"><em>i</em></button>
@@ -420,83 +433,86 @@
       <button onclick="insertMd('\n```\n','\n```')">{ }</button>
       <button onclick="insertMd('[','](url)')">🔗</button>
       <button onclick="insertMd('\n---\n','')">—</button>
+      <span class="tb-sep"></span>
+      <button class="tb-img" onclick="document.getElementById('file-input').click()" title="Image from file">📁</button>
+      <button class="tb-img" onclick="document.getElementById('cam-input').click()"  title="Camera">📷</button>
+      <button class="tb-img" onclick="pasteClipboard()" title="Paste image">📋</button>
     </div>
     <textarea id="note-content"
-      placeholder="Write in Markdown…&#10;&#10;**bold**  *italic*  ~~strikethrough~~&#10;# Heading&#10;- list item&#10;> blockquote&#10;`code`"></textarea>
+      placeholder="Write in Markdown…&#10;&#10;**bold**  *italic*  # Heading&#10;- list  > quote  `code`"></textarea>
     <div class="md-render" id="md-preview" style="display:none"></div>
-    <div id="img-toolbar">
-      <button class="img-btn" onclick="document.getElementById('file-input').click()">📁 File</button>
-      <button class="img-btn" onclick="document.getElementById('cam-input').click()">📷 Camera</button>
-      <button class="img-btn" onclick="pasteClipboard()">📋 Paste</button>
-    </div>
-    <input id="file-input" type="file" accept="image/*" style="display:none" onchange="handleFile(event)">
-    <input id="cam-input"  type="file" accept="image/*" capture="environment" style="display:none" onchange="handleFile(event)">
     <div id="editor-images"></div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
      VIEW MODAL
-══════════════════════════════════════════════════════ -->
+════════════════════════════════════════════════════════ -->
 <div class="modal" id="view-modal">
   <div class="view-bar" id="view-bar"></div>
   <div class="mhdr-slate">
-    <button class="icon-btn-light" onclick="closeView()">←</button>
-    <span class="mhdr-title-light" id="view-title"></span>
-    <button class="btn-outline-light" onclick="editViewing()">Edit</button>
-    <button class="btn-danger" onclick="deleteViewing()">Delete</button>
+    <button class="ibl" onclick="closeView()">←</button>
+    <span class="ttll" id="view-title"></span>
+    <button class="b-ol"  onclick="editViewing()">Edit</button>
+    <button class="b-dn"  onclick="deleteViewing()">Delete</button>
   </div>
-  <div class="modal-body" id="view-body"></div>
+  <div id="view-body"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
      SETTINGS MODAL
-══════════════════════════════════════════════════════ -->
+════════════════════════════════════════════════════════ -->
 <div class="modal" id="settings-modal">
   <div class="mhdr-plain">
-    <button class="icon-btn-dark" onclick="closeSettings()">←</button>
-    <span class="mhdr-title-dark">Settings</span>
+    <button class="ibd" onclick="closeSettings()">←</button>
+    <span class="ttld">Settings</span>
   </div>
-  <div class="modal-body" id="settings-body">
+  <div class="settings-scroll">
 
-    <!-- Transfer section -->
-    <div class="settings-section">
-      <div class="settings-section-title">Transfer Notes Between Devices</div>
-      <div style="padding:0 16px 14px; display:flex; flex-direction:column; gap:8px;">
+    <!-- Notes file -->
+    <div class="s-section">
+      <div class="s-title">Notes File</div>
+      <div class="folder-row">
+        <span style="font-size:22px">📁</span>
+        <div style="flex:1;overflow:hidden">
+          <div class="folder-row-info" id="folder-display">Not connected</div>
+          <div class="folder-row-sub">cleanslate-notes.json</div>
+        </div>
+        <button class="b-pl" onclick="pickDirectory()" style="flex-shrink:0">Change</button>
+      </div>
+    </div>
+
+    <!-- Transfer -->
+    <div class="s-section">
+      <div class="s-title">Additional Export</div>
+      <div class="s-pad">
         <button class="sync-btn" onclick="exportJSON()">
           <span class="sync-icon">⬇</span>
-          <div>
-            <div>Export as backup file</div>
-            <div class="sync-desc">Downloads a .json file with all your notes and images</div>
-          </div>
+          <div><div>Export JSON backup</div><div class="sync-desc">Portable copy — useful for importing on another device</div></div>
         </button>
         <button class="sync-btn" onclick="document.getElementById('import-input').click()">
           <span class="sync-icon">⬆</span>
-          <div>
-            <div>Import from backup file</div>
-            <div class="sync-desc">Merges notes from a .json file — won't create duplicates</div>
-          </div>
+          <div><div>Import JSON backup</div><div class="sync-desc">Merges notes — won't create duplicates</div></div>
         </button>
-        <input id="import-input" type="file" accept=".json,application/json" style="display:none" onchange="importJSON(event)">
       </div>
     </div>
 
-    <!-- Label editor -->
-    <div class="settings-section">
-      <div class="settings-section-title">Edit Labels</div>
+    <!-- Labels -->
+    <div class="s-section">
+      <div class="s-title">Edit Labels</div>
       <div id="label-editor"></div>
-      <div style="padding:12px 16px; display:flex; gap:8px; border-top:1px solid var(--border)">
-        <button class="btn-plain" onclick="resetLabels()" style="flex:1">Reset to defaults</button>
-        <button class="btn-accent" onclick="saveLabels()" style="flex:2">Save labels</button>
-      </div>
     </div>
 
+  </div>
+  <div class="settings-footer">
+    <button class="b-pl" onclick="resetLabels()">Reset defaults</button>
+    <button class="b-ac" onclick="saveLabels()">Save labels</button>
   </div>
 </div>
 
 <script>
 /* ════════════════════════════════════════════════════════
-   DEFAULT LABELS
+   LABELS (localStorage)
 ════════════════════════════════════════════════════════ */
 const DEFAULT_LABELS = {
   none:     { color: '#94a3b8', name: 'None'     },
@@ -509,180 +525,262 @@ const DEFAULT_LABELS = {
   travel:   { color: '#14b8a6', name: 'Travel'   },
   finance:  { color: '#6366f1', name: 'Finance'  },
 };
-
-// Labels are loaded from localStorage so names/colors persist across sessions
-let LABELS = loadLabels();
-
-function loadLabels() {
-  try {
-    const stored = localStorage.getItem('cs_labels');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Merge with defaults to catch any new keys added in app updates
-      return { ...DEFAULT_LABELS, ...parsed };
-    }
-  } catch {}
+let LABELS = (() => {
+  try { const s = localStorage.getItem('cs_labels'); if (s) return { ...DEFAULT_LABELS, ...JSON.parse(s) }; } catch {}
   return { ...DEFAULT_LABELS };
-}
-
-function persistLabels() {
-  localStorage.setItem('cs_labels', JSON.stringify(LABELS));
-}
+})();
+const persistLabels = () => localStorage.setItem('cs_labels', JSON.stringify(LABELS));
 
 /* ════════════════════════════════════════════════════════
-   INDEXEDDB
+   FILE STORAGE
+   Notes are stored in cleanslate-notes.json in a folder
+   the user picks. This file is on the device filesystem —
+   clearing browser data does NOT delete it.
 ════════════════════════════════════════════════════════ */
-let db;
+let notes     = [];   // in-memory working copy
+let dirHandle = null; // FileSystemDirectoryHandle
+let fileHandle= null; // FileSystemFileHandle for the JSON
 
-function openDB() {
+const NOTES_FILE = 'cleanslate-notes.json';
+
+/* ── Small IDB for persisting the directory handle ─── */
+function openHandleDB() {
   return new Promise((res, rej) => {
-    const req = indexedDB.open('cleanslate', 1);
-    req.onupgradeneeded = e => {
-      const d = e.target.result;
-      if (!d.objectStoreNames.contains('notes')) {
-        const s = d.createObjectStore('notes', { keyPath: 'id', autoIncrement: true });
-        s.createIndex('createdAt', 'createdAt');
-        s.createIndex('label', 'label');
-        s.createIndex('uuid', 'uuid');
-      }
-    };
-    req.onsuccess = e => { db = e.target.result; res(); };
+    const req = indexedDB.open('cs-handle', 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('h');
+    req.onsuccess = e => res(e.target.result);
     req.onerror   = rej;
   });
 }
-
-function dbGetAll() {
+async function saveHandleToDB(h) {
+  const db = await openHandleDB();
   return new Promise((res, rej) => {
-    const req = db.transaction('notes', 'readonly').objectStore('notes').getAll();
-    req.onsuccess = () => res(req.result);
-    req.onerror   = rej;
+    const tx = db.transaction('h', 'readwrite');
+    tx.objectStore('h').put(h, 'dir').onsuccess = res;
+    tx.onerror = rej;
   });
 }
-
-function dbPut(note) {
-  return new Promise((res, rej) => {
-    const tx  = db.transaction('notes', 'readwrite');
-    const req = note.id ? tx.objectStore('notes').put(note)
-                        : tx.objectStore('notes').add(note);
-    req.onsuccess = () => res(req.result);
-    req.onerror   = rej;
-  });
-}
-
-function dbDelete(id) {
+async function loadHandleFromDB() {
+  const db = await openHandleDB();
   return new Promise(res => {
-    db.transaction('notes', 'readwrite').objectStore('notes').delete(id).onsuccess = res;
+    const req = db.transaction('h', 'readonly').objectStore('h').get('dir');
+    req.onsuccess = () => res(req.result || null);
+    req.onerror   = () => res(null);
   });
 }
 
-/* ════════════════════════════════════════════════════════
-   STATE
-════════════════════════════════════════════════════════ */
-let editing    = null;
-let edImages   = [];
-let viewing    = null;
-let previewing = false;
-let filterLabel = 'all';
-let sortMode   = 'newest';
-
-/* ════════════════════════════════════════════════════════
-   FILTER PILLS
-════════════════════════════════════════════════════════ */
-function buildFilterPills() {
-  const allBtn = `<button class="filter-pill ${filterLabel === 'all' ? 'active' : ''}"
-    style="${filterLabel === 'all' ? 'background:#1e293b;border-color:#1e293b' : ''}"
-    onclick="setFilter('all')">All</button>`;
-
-  const labelBtns = Object.entries(LABELS)
-    .filter(([k]) => k !== 'none')
-    .map(([k, v]) => {
-      const a = filterLabel === k;
-      return `<button class="filter-pill ${a ? 'active' : ''}"
-        style="${a ? `background:${v.color};border-color:${v.color}` : ''}"
-        onclick="setFilter('${k}')">
-        <span class="pdot" style="background:${v.color}"></span>${escH(v.name)}
-      </button>`;
-    }).join('');
-
-  document.getElementById('filter-pills').innerHTML = allBtn + labelBtns;
+/* ── Read / write the notes JSON file ──────────────── */
+async function readNotesFile() {
+  if (!fileHandle) return;
+  const file = await fileHandle.getFile();
+  const text = await file.text();
+  if (!text.trim()) { notes = []; return; }
+  try {
+    const data = JSON.parse(text);
+    notes = Array.isArray(data.notes) ? data.notes : [];
+    if (data.labels) { LABELS = { ...DEFAULT_LABELS, ...data.labels }; persistLabels(); }
+  } catch { notes = []; }
 }
 
-function setFilter(tag) {
-  filterLabel = tag;
+async function writeNotes() {
+  if (!fileHandle) return;
+  try {
+    const w = await fileHandle.createWritable();
+    await w.write(JSON.stringify({ version: 1, savedAt: new Date().toISOString(), labels: LABELS, notes }, null, 2));
+    await w.close();
+  } catch (err) {
+    console.error('Write failed', err);
+    toast('⚠ Could not save — check folder permission');
+  }
+}
+
+/* ── Get / open the notes file inside the dir ─────── */
+async function openNotesFile() {
+  fileHandle = await dirHandle.getFileHandle(NOTES_FILE, { create: true });
+  await readNotesFile();
+}
+
+/* ── Pick a folder (first time or change) ─────────── */
+async function pickDirectory() {
+  try {
+    dirHandle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'cleanslate' });
+    await saveHandleToDB(dirHandle);
+    await openNotesFile();
+    showApp();
+  } catch (e) {
+    if (e.name !== 'AbortError') toast('Could not open folder: ' + e.message);
+  }
+}
+
+/* ── Reconnect to stored handle ────────────────────── */
+async function reconnect() {
+  try {
+    const perm = await dirHandle.requestPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      await openNotesFile();
+      showApp();
+    } else {
+      toast('Permission denied — try picking the folder again.');
+    }
+  } catch (e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+/* ── Boot sequence ─────────────────────────────────── */
+async function boot() {
+  if (!('showDirectoryPicker' in window)) {
+    // Very old browser — fall back to showing an error
+    document.body.innerHTML = `<div style="padding:40px;text-align:center;font-family:sans-serif;max-width:360px;margin:auto">
+      <p style="font-size:40px">⚠️</p>
+      <h2>Browser not supported</h2>
+      <p style="margin-top:12px;color:#64748b">CleanSlate requires Chrome 86 or later to store notes as files on your device. Please update your browser.</p>
+    </div>`;
+    return;
+  }
+
+  const stored = await loadHandleFromDB();
+  if (!stored) {
+    showScreen('onboarding'); return;
+  }
+
+  dirHandle = stored;
+
+  // Check current permission state
+  let perm;
+  try { perm = await dirHandle.queryPermission({ mode: 'readwrite' }); } catch { perm = 'prompt'; }
+
+  if (perm === 'granted') {
+    // Permission already active (same session) — go straight in
+    await openNotesFile();
+    showApp();
+  } else {
+    // Need user gesture to get permission — show reconnect screen
+    document.getElementById('reconnect-folder-name').textContent = '📁 ' + dirHandle.name;
+    showScreen('reconnect');
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   CRUD (in-memory + file write)
+════════════════════════════════════════════════════════ */
+function getAllNotes() { return [...notes]; }
+
+async function putNote(note) {
+  const idx = notes.findIndex(n => n.id === note.id);
+  if (idx >= 0) notes[idx] = note;
+  else notes.unshift(note);
+  await writeNotes();
+}
+
+async function removeNote(id) {
+  notes = notes.filter(n => n.id !== id);
+  await writeNotes();
+}
+
+/* ════════════════════════════════════════════════════════
+   UI STATE
+════════════════════════════════════════════════════════ */
+function showScreen(name) {
+  ['onboarding','reconnect','app'].forEach(s => {
+    const el = document.getElementById('screen-' + s);
+    el.classList.toggle('active', s === name);
+    if (s === 'app') el.style.display = s === name ? 'flex' : 'none';
+  });
+}
+
+function showApp() {
+  // Update folder display in settings
+  const fd = document.getElementById('folder-display');
+  if (fd && dirHandle) fd.textContent = dirHandle.name;
+  showScreen('app');
   buildFilterPills();
   renderCards();
 }
 
 /* ════════════════════════════════════════════════════════
-   SORT
+   ANDROID KEYBOARD
 ════════════════════════════════════════════════════════ */
-const SORT_STATES = [
-  { key: 'newest', label: '↓ Newest' },
-  { key: 'oldest', label: '↑ Oldest' },
-  { key: 'label',  label: '🏷 Label'  },
-];
-
-function cycleSort() {
-  const idx  = SORT_STATES.findIndex(s => s.key === sortMode);
-  sortMode   = SORT_STATES[(idx + 1) % SORT_STATES.length].key;
-  document.getElementById('sort-btn').textContent = SORT_STATES.find(s => s.key === sortMode).label;
-  renderCards();
-}
-
-function applySort(notes) {
-  const c = [...notes];
-  if (sortMode === 'newest') return c.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  if (sortMode === 'oldest') return c.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  return c.sort((a, b) => {
-    const la = LABELS[a.label]?.name || 'None';
-    const lb = LABELS[b.label]?.name || 'None';
-    return la.localeCompare(lb) || new Date(b.createdAt) - new Date(a.createdAt);
+(function() {
+  if (!window.visualViewport) return;
+  window.visualViewport.addEventListener('resize', () => {
+    const m = document.getElementById('editor-modal');
+    if (!m.classList.contains('open')) return;
+    m.style.height = window.visualViewport.height + 'px';
+    m.style.top    = window.visualViewport.offsetTop + 'px';
+    m.style.bottom = 'auto';
   });
+})();
+
+function resetEditorSize() {
+  const m = document.getElementById('editor-modal');
+  m.style.height = m.style.top = m.style.bottom = '';
 }
 
 /* ════════════════════════════════════════════════════════
-   CARD LIST
+   FILTER PILLS
 ════════════════════════════════════════════════════════ */
-async function renderCards() {
-  let notes = await dbGetAll();
-  if (filterLabel !== 'all') notes = notes.filter(n => n.label === filterLabel);
-  const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
-  if (q) notes = notes.filter(n => (n.title + ' ' + n.content).toLowerCase().includes(q));
-  notes = applySort(notes);
+let filterLabel = 'all';
+let sortMode    = 'newest';
 
-  const el = document.getElementById('cards-list');
-  if (!notes.length) {
-    el.innerHTML = `<div class="empty-state">
-      <div class="empty-icon">🪨</div>
-      <div class="empty-msg">${
-        q ? 'No notes match your search.'
-        : filterLabel !== 'all' ? `No <strong>${escH(LABELS[filterLabel]?.name || '')}</strong> notes yet.`
-        : 'No notes yet.<br>Tap <strong>+</strong> to create one.'
-      }</div></div>`;
-    return;
+function buildFilterPills() {
+  const all = `<button class="filter-pill ${filterLabel==='all'?'active':''}"
+    style="${filterLabel==='all'?'background:#1e293b;border-color:#1e293b':''}"
+    onclick="setFilter('all')">All</button>`;
+  const lps = Object.entries(LABELS).filter(([k])=>k!=='none').map(([k,v])=>{
+    const a = filterLabel===k;
+    return `<button class="filter-pill ${a?'active':''}"
+      style="${a?`background:${v.color};border-color:${v.color}`:''}"
+      onclick="setFilter('${k}')">
+      <span class="pdot" style="background:${v.color}"></span>${escH(v.name)}
+    </button>`;
+  }).join('');
+  document.getElementById('filter-pills').innerHTML = all + lps;
+}
+function setFilter(t) { filterLabel=t; buildFilterPills(); renderCards(); }
+
+const SORTS = [{key:'newest',label:'↓ Newest'},{key:'oldest',label:'↑ Oldest'},{key:'label',label:'🏷 Label'}];
+function cycleSort() {
+  sortMode = SORTS[(SORTS.findIndex(s=>s.key===sortMode)+1)%SORTS.length].key;
+  document.getElementById('sort-btn').textContent = SORTS.find(s=>s.key===sortMode).label;
+  renderCards();
+}
+function applySort(arr) {
+  const c=[...arr];
+  if (sortMode==='newest') return c.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if (sortMode==='oldest') return c.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  return c.sort((a,b)=>(LABELS[a.label]?.name||'').localeCompare(LABELS[b.label]?.name||'')||new Date(b.createdAt)-new Date(a.createdAt));
+}
+
+/* ════════════════════════════════════════════════════════
+   RENDER CARDS
+════════════════════════════════════════════════════════ */
+function renderCards() {
+  let list = getAllNotes();
+  if (filterLabel!=='all') list=list.filter(n=>n.label===filterLabel);
+  const q=(document.getElementById('search-input').value||'').toLowerCase().trim();
+  if (q) list=list.filter(n=>(n.title+' '+n.content).toLowerCase().includes(q));
+  list=applySort(list);
+  const el=document.getElementById('cards-list');
+  if (!list.length) {
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">🪨</div><div class="empty-msg">${
+      q?'No notes match your search.'
+      :filterLabel!=='all'?`No <strong>${escH(LABELS[filterLabel]?.name||'')}</strong> notes yet.`
+      :'No notes yet.<br>Tap <strong>+</strong> to create one.'
+    }</div></div>`; return;
   }
-
-  el.innerHTML = notes.map(n => {
-    const lbl  = LABELS[n.label] || LABELS.none;
-    const haslbl = n.label && n.label !== 'none';
-    const barBg  = haslbl ? lbl.color : 'var(--border)';
-    const title  = escH(n.title || firstLine(n.content) || 'Untitled');
-    const prev   = escH(n.title ? stripMd(n.content) : stripMd(n.content).slice(0, 120));
-    const thumbs = (n.images || []).slice(0, 3)
-                   .map(i => `<img class="card-thumb" src="${i.data}" alt="">`).join('');
-    const badge  = haslbl
-      ? `<span class="card-badge" style="background:${lbl.color}">${escH(lbl.name)}</span>`
-      : '';
-    return `<div class="card" onclick="viewNote(${n.id})">
-      <div class="card-bar" style="background:${barBg}"></div>
+  el.innerHTML=list.map(n=>{
+    const lbl=LABELS[n.label]||LABELS.none, hasL=n.label&&n.label!=='none';
+    const title=escH(n.title||firstLine(n.content)||'Untitled');
+    const prev=escH(n.title?stripMd(n.content):stripMd(n.content).slice(0,120));
+    const thumbs=(n.images||[]).slice(0,3).map(i=>`<img class="card-thumb" src="${i.data}" alt="">`).join('');
+    const badge=hasL?`<span class="card-badge" style="background:${lbl.color}">${escH(lbl.name)}</span>`:'';
+    return `<div class="card" onclick="viewNote('${n.id}')">
+      <div class="card-bar" style="background:${hasL?lbl.color:'var(--border)'}"></div>
       <div class="card-body">
         <div class="card-title">${title}</div>
-        ${prev ? `<div class="card-preview">${prev}</div>` : ''}
-        <div class="card-footer">
-          ${badge}
-          <span class="card-date">${relDate(n.createdAt)}</span>
-          <div class="card-thumbs">${thumbs}</div>
-        </div>
+        ${prev?`<div class="card-preview">${prev}</div>`:''}
+        <div class="card-footer">${badge}<span class="card-date">${relDate(n.createdAt)}</span><div class="card-thumbs">${thumbs}</div></div>
       </div>
     </div>`;
   }).join('');
@@ -691,447 +789,277 @@ async function renderCards() {
 /* ════════════════════════════════════════════════════════
    EDITOR
 ════════════════════════════════════════════════════════ */
-function openEditor(note = null) {
-  editing    = note;
-  edImages   = note ? (note.images || []).map(i => ({ ...i })) : [];
-  previewing = false;
+let editing   = null;
+let edImages  = [];
+let previewing= false;
 
-  document.getElementById('editor-label').textContent    = note ? 'Edit Note' : 'New Note';
-  document.getElementById('note-title').value            = note?.title   || '';
-  document.getElementById('note-content').value          = note?.content || '';
+function openEditor(note=null) {
+  editing   = note;
+  edImages  = note?(note.images||[]).map(i=>({...i})):[];
+  previewing= false;
+  document.getElementById('editor-label').textContent    = note?'Edit Note':'New Note';
+  document.getElementById('note-title').value            = note?.title||'';
+  document.getElementById('note-content').value          = note?.content||'';
   document.getElementById('note-content').style.display = '';
   document.getElementById('md-preview').style.display   = 'none';
   document.getElementById('preview-btn').textContent    = 'Preview';
-
-  buildLabelGrid(note?.label || 'none');
+  populateLabelSelect(note?.label||'none');
   renderEdImages();
   document.getElementById('editor-modal').classList.add('open');
-  setTimeout(() => document.getElementById('note-content').focus(), 350);
 }
-
 function closeEditor() {
   document.getElementById('editor-modal').classList.remove('open');
-  editing = null; edImages = [];
+  resetEditorSize(); editing=null; edImages=[];
 }
 
-/* label grid */
-function buildLabelGrid(sel) {
-  document.getElementById('label-grid').innerHTML =
-    Object.entries(LABELS).map(([k, v]) =>
-      `<div class="label-chip ${k === sel ? 'active' : ''}"
-        data-label="${k}" style="background:${v.color}"
-        onclick="pickLabel('${k}')">${escH(v.name)}</div>`
-    ).join('');
+function populateLabelSelect(sel) {
+  document.getElementById('label-select').innerHTML =
+    Object.entries(LABELS).map(([k,v])=>`<option value="${k}" ${k===(sel||'none')?'selected':''}>${escH(v.name)}</option>`).join('');
+  updateLabelDot();
 }
-
-function pickLabel(key) {
-  document.querySelectorAll('.label-chip').forEach(c => c.classList.remove('active'));
-  document.querySelector(`.label-chip[data-label="${key}"]`).classList.add('active');
+function onLabelChange() { updateLabelDot(); }
+function updateLabelDot() {
+  const k=document.getElementById('label-select').value;
+  document.getElementById('label-dot').style.background=LABELS[k]?.color||LABELS.none.color;
 }
+function getLabel() { return document.getElementById('label-select').value||'none'; }
 
-function getLabel() {
-  const sel = document.querySelector('.label-chip.active');
-  return sel ? sel.dataset.label : 'none';
-}
-
-/* save */
 async function saveNote() {
-  const title   = document.getElementById('note-title').value.trim();
-  const content = document.getElementById('note-content').value.trim();
-  const label   = getLabel();
-
-  if (!title && !content && !edImages.length) {
-    alert('Nothing to save — write something first.');
-    return;
-  }
-
-  const note = {
-    ...(editing?.id ? { id: editing.id } : {}),
+  const title  =document.getElementById('note-title').value.trim();
+  const content=document.getElementById('note-content').value.trim();
+  const label  =getLabel();
+  if (!title&&!content&&!edImages.length) { alert('Nothing to save — write something first.'); return; }
+  await putNote({
+    id:        editing?.id || makeId(),
     uuid:      editing?.uuid || makeUUID(),
     title, content, label,
     images:    edImages,
     createdAt: editing?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  };
-
-  await dbPut(note);
-  closeEditor();
-  renderCards();
+  });
+  closeEditor(); renderCards();
 }
 
-/* preview */
 function togglePreview() {
-  previewing = !previewing;
-  const ta  = document.getElementById('note-content');
-  const pre = document.getElementById('md-preview');
-  const btn = document.getElementById('preview-btn');
-  if (previewing) {
-    pre.innerHTML     = renderMd(ta.value, edImages);
-    ta.style.display  = 'none';
-    pre.style.display = '';
-    btn.textContent   = 'Edit';
-  } else {
-    ta.style.display  = '';
-    pre.style.display = 'none';
-    btn.textContent   = 'Preview';
-  }
+  previewing=!previewing;
+  const ta=document.getElementById('note-content'),pre=document.getElementById('md-preview'),btn=document.getElementById('preview-btn');
+  if (previewing) { pre.innerHTML=renderMd(ta.value,edImages); ta.style.display='none'; pre.style.display=''; btn.textContent='Edit'; }
+  else            { ta.style.display=''; pre.style.display='none'; btn.textContent='Preview'; }
 }
 
-/* markdown toolbar */
-function insertMd(before, after) {
-  const ta  = document.getElementById('note-content');
-  const s   = ta.selectionStart, e = ta.selectionEnd;
-  const sel = ta.value.substring(s, e);
-  ta.value  = ta.value.substring(0, s) + before + sel + after + ta.value.substring(e);
-  ta.focus();
-  ta.selectionStart = s + before.length;
-  ta.selectionEnd   = s + before.length + sel.length;
+function insertMd(before,after) {
+  const ta=document.getElementById('note-content'),s=ta.selectionStart,e=ta.selectionEnd,sel=ta.value.substring(s,e);
+  ta.value=ta.value.substring(0,s)+before+sel+after+ta.value.substring(e);
+  ta.focus(); ta.selectionStart=s+before.length; ta.selectionEnd=s+before.length+sel.length;
 }
 
 /* ════════════════════════════════════════════════════════
    IMAGES
 ════════════════════════════════════════════════════════ */
 function handleFile(e) {
-  const f = e.target.files[0];
-  if (!f) return;
-  const r = new FileReader();
-  r.onload = ev => addImage(ev.target.result, f.type);
-  r.readAsDataURL(f);
-  e.target.value = '';
+  const f=e.target.files[0]; if (!f) return;
+  const r=new FileReader(); r.onload=ev=>addImage(ev.target.result,f.type); r.readAsDataURL(f); e.target.value='';
 }
-
 async function pasteClipboard() {
   try {
-    const items = await navigator.clipboard.read();
+    const items=await navigator.clipboard.read();
     for (const item of items) {
-      const t = item.types.find(x => x.startsWith('image/'));
-      if (t) {
-        const blob = await item.getType(t);
-        const r = new FileReader();
-        r.onload = ev => addImage(ev.target.result, t);
-        r.readAsDataURL(blob);
-        return;
-      }
+      const t=item.types.find(x=>x.startsWith('image/'));
+      if (t) { const blob=await item.getType(t); const r=new FileReader(); r.onload=ev=>addImage(ev.target.result,t); r.readAsDataURL(blob); return; }
     }
     alert('No image found in clipboard.');
-  } catch {
-    alert('Clipboard paste requires HTTPS.\nUse "File" or "Camera" instead, or host the app online.');
-  }
+  } catch { alert('Clipboard paste requires HTTPS. Use 📁 or 📷 instead.'); }
 }
-
-function addImage(dataUrl, mime) {
-  const id  = 'i' + Date.now() + Math.random().toString(36).slice(2, 6);
-  edImages.push({ id, data: dataUrl, mime });
-  const ta  = document.getElementById('note-content');
-  const pos = ta.selectionStart ?? ta.value.length;
-  ta.value  = ta.value.substring(0, pos) + `\n![image](img:${id})\n` + ta.value.substring(pos);
+function addImage(dataUrl,mime) {
+  const id='i'+Date.now()+Math.random().toString(36).slice(2,6);
+  edImages.push({id,data:dataUrl,mime});
+  const ta=document.getElementById('note-content'),pos=ta.selectionStart??ta.value.length;
+  ta.value=ta.value.substring(0,pos)+`\n![image](img:${id})\n`+ta.value.substring(pos);
   renderEdImages();
 }
-
 function removeImage(id) {
-  edImages = edImages.filter(i => i.id !== id);
-  const ta = document.getElementById('note-content');
-  ta.value = ta.value.replace(new RegExp(`\\n?!\\[image\\]\\(img:${id}\\)\\n?`, 'g'), '');
+  edImages=edImages.filter(i=>i.id!==id);
+  document.getElementById('note-content').value=
+    document.getElementById('note-content').value.replace(new RegExp(`\\n?!\\[image\\]\\(img:${id}\\)\\n?`,'g'),'');
   renderEdImages();
 }
-
 function renderEdImages() {
-  document.getElementById('editor-images').innerHTML =
-    edImages.map(i => `<div class="eimg-wrap">
-      <img src="${i.data}" alt="">
-      <button class="eimg-del" onclick="removeImage('${i.id}')">×</button>
-    </div>`).join('');
+  document.getElementById('editor-images').innerHTML=
+    edImages.map(i=>`<div class="eimg-wrap"><img src="${i.data}" alt=""><button class="eimg-del" onclick="removeImage('${i.id}')">×</button></div>`).join('');
 }
 
 /* ════════════════════════════════════════════════════════
-   VIEW NOTE
+   VIEW
 ════════════════════════════════════════════════════════ */
-async function viewNote(id) {
-  const all = await dbGetAll();
-  viewing   = all.find(n => n.id === id);
-  if (!viewing) return;
+let viewing=null;
 
-  const lbl    = LABELS[viewing.label] || LABELS.none;
-  const haslbl = viewing.label && viewing.label !== 'none';
-
-  document.getElementById('view-bar').style.background = haslbl ? lbl.color : 'var(--border)';
-  document.getElementById('view-title').textContent    = viewing.title || longDate(viewing.createdAt);
-
-  const badge = haslbl
-    ? `<span style="display:inline-block;background:${lbl.color};color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px">${escH(lbl.name)}</span>`
-    : '';
-
-  document.getElementById('view-body').innerHTML = `
-    <p class="view-meta">${longDate(viewing.createdAt)}${badge ? '&ensp;' + badge : ''}</p>
-    <div class="md-render">${renderMd(viewing.content || '', viewing.images)}</div>
-  `;
+function viewNote(id) {
+  viewing=getAllNotes().find(n=>n.id==id); if (!viewing) return;
+  const lbl=LABELS[viewing.label]||LABELS.none, hasL=viewing.label&&viewing.label!=='none';
+  document.getElementById('view-bar').style.background=hasL?lbl.color:'var(--border)';
+  document.getElementById('view-title').textContent=viewing.title||longDate(viewing.createdAt);
+  const badge=hasL?`&ensp;<span style="background:${lbl.color};color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px">${escH(lbl.name)}</span>`:'';
+  document.getElementById('view-body').innerHTML=
+    `<p class="view-meta">${longDate(viewing.createdAt)}${badge}</p>
+     <div class="md-render">${renderMd(viewing.content||'',viewing.images)}</div>`;
   document.getElementById('view-modal').classList.add('open');
 }
-
-function closeView() {
-  document.getElementById('view-modal').classList.remove('open');
-  viewing = null;
-}
-
-function editViewing() {
-  const n = viewing; closeView();
-  setTimeout(() => openEditor(n), 300);
-}
-
+function closeView() { document.getElementById('view-modal').classList.remove('open'); viewing=null; }
+function editViewing() { const n=viewing; closeView(); setTimeout(()=>openEditor(n),300); }
 async function deleteViewing() {
-  if (!viewing || !confirm('Delete this note? This cannot be undone.')) return;
-  await dbDelete(viewing.id);
-  closeView();
-  renderCards();
+  if (!viewing||!confirm('Delete this note? This cannot be undone.')) return;
+  await removeNote(viewing.id); closeView(); renderCards();
 }
 
 /* ════════════════════════════════════════════════════════
    SETTINGS
 ════════════════════════════════════════════════════════ */
 function openSettings() {
+  const fd=document.getElementById('folder-display');
+  if (fd&&dirHandle) fd.textContent=dirHandle.name;
   buildLabelEditor();
   document.getElementById('settings-modal').classList.add('open');
 }
+function closeSettings() { document.getElementById('settings-modal').classList.remove('open'); }
 
-function closeSettings() {
-  document.getElementById('settings-modal').classList.remove('open');
-}
-
-/* ── Label editor ────────────────────────────────────── */
 function buildLabelEditor() {
-  document.getElementById('label-editor').innerHTML =
-    Object.entries(LABELS).map(([k, v]) => `
-      <div class="label-edit-row">
-        <div class="color-swatch" style="background:${v.color}" id="swatch-${k}">
-          <input type="color" value="${v.color}"
-            oninput="updateSwatchPreview('${k}', this.value)"
-            data-key="${k}">
+  document.getElementById('label-editor').innerHTML=
+    Object.entries(LABELS).map(([k,v])=>`
+      <div class="lbl-edit-row">
+        <div class="color-swatch" id="sw-${k}" style="background:${v.color}">
+          <input type="color" value="${v.color}" oninput="previewSwatch('${k}',this.value)" data-key="${k}">
         </div>
-        <input class="label-name-input" type="text" value="${escH(v.name)}"
-          data-key="${k}" placeholder="Label name"
-          ${k === 'none' ? 'readonly style="color:var(--muted)"' : ''}>
-      </div>`
-    ).join('');
+        <input class="lbl-name-inp" type="text" value="${escH(v.name)}" data-key="${k}" placeholder="Label name"
+          ${k==='none'?'readonly style="color:var(--muted)"':''}>
+      </div>`).join('');
 }
-
-function updateSwatchPreview(key, color) {
-  document.getElementById('swatch-' + key).style.background = color;
-}
+function previewSwatch(k,c) { document.getElementById('sw-'+k).style.background=c; }
 
 function saveLabels() {
-  const nameInputs  = document.querySelectorAll('#label-editor .label-name-input');
-  const colorInputs = document.querySelectorAll('#label-editor input[type=color]');
-  nameInputs.forEach(inp => {
-    const k = inp.dataset.key;
-    if (LABELS[k]) LABELS[k].name = inp.value.trim() || DEFAULT_LABELS[k].name;
+  document.querySelectorAll('#label-editor .lbl-name-inp').forEach(i=>{
+    const k=i.dataset.key; if (LABELS[k]) LABELS[k].name=i.value.trim()||DEFAULT_LABELS[k].name;
   });
-  colorInputs.forEach(inp => {
-    const k = inp.dataset.key;
-    if (LABELS[k]) LABELS[k].color = inp.value;
+  document.querySelectorAll('#label-editor input[type=color]').forEach(i=>{
+    const k=i.dataset.key; if (LABELS[k]) LABELS[k].color=i.value;
   });
-  persistLabels();
-  buildFilterPills();
-  renderCards();
-  closeSettings();
-  toast('Labels saved ✓');
+  persistLabels(); writeNotes(); // persist labels to the notes file too
+  if (document.getElementById('editor-modal').classList.contains('open')) populateLabelSelect(getLabel());
+  buildFilterPills(); renderCards(); closeSettings(); toast('Labels saved ✓');
 }
-
 function resetLabels() {
-  if (!confirm('Reset all labels to their defaults?')) return;
-  LABELS = { ...DEFAULT_LABELS };
-  persistLabels();
-  buildLabelEditor();
-  buildFilterPills();
-  renderCards();
-  toast('Labels reset ✓');
+  if (!confirm('Reset all labels to defaults?')) return;
+  LABELS={...DEFAULT_LABELS}; persistLabels(); writeNotes();
+  buildLabelEditor(); buildFilterPills(); renderCards(); toast('Labels reset ✓');
 }
 
 /* ════════════════════════════════════════════════════════
-   EXPORT / IMPORT (JSON — for device transfer)
+   JSON EXPORT / IMPORT (portable backup)
 ════════════════════════════════════════════════════════ */
 async function exportJSON() {
-  const notes = await dbGetAll();
-  const payload = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    labels: LABELS,
-    notes,
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  Object.assign(document.createElement('a'), {
-    href: url,
-    download: `cleanslate-backup-${new Date().toISOString().slice(0, 10)}.json`
-  }).click();
+  const all=getAllNotes();
+  const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),labels:LABELS,notes:all},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'),{href:url,download:`cleanslate-backup-${new Date().toISOString().slice(0,10)}.json`}).click();
   URL.revokeObjectURL(url);
-  toast(`Exported ${notes.length} note${notes.length !== 1 ? 's' : ''} ✓`);
+  toast(`Exported ${all.length} note${all.length!==1?'s':''} ✓`);
 }
 
 async function importJSON(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  e.target.value = '';
-
+  const file=e.target.files[0]; if (!file) return; e.target.value='';
   let payload;
-  try {
-    payload = JSON.parse(await file.text());
-  } catch {
-    alert('Could not read file — make sure it is a CleanSlate backup (.json).');
-    return;
-  }
-
-  if (!payload.notes || !Array.isArray(payload.notes)) {
-    alert('This file does not look like a CleanSlate backup.');
-    return;
-  }
-
-  const existing   = await dbGetAll();
-  const uuidMap    = new Map(existing.filter(n => n.uuid).map(n => [n.uuid, n]));
-  let   imported   = 0, updated = 0, skipped = 0;
-
-  for (const note of payload.notes) {
-    if (note.uuid && uuidMap.has(note.uuid)) {
-      const local = uuidMap.get(note.uuid);
-      if (new Date(note.updatedAt) > new Date(local.updatedAt)) {
-        // Remote is newer — update, keeping the local DB id
-        await dbPut({ ...note, id: local.id });
-        updated++;
-      } else {
-        skipped++;
-      }
+  try { payload=JSON.parse(await file.text()); } catch { alert('Could not read file.'); return; }
+  if (!Array.isArray(payload?.notes)) { alert('This does not look like a CleanSlate backup.'); return; }
+  const uuidSet=new Set(notes.filter(n=>n.uuid).map(n=>n.uuid));
+  let added=0,updated=0,skipped=0;
+  for (const n of payload.notes) {
+    if (n.uuid&&uuidSet.has(n.uuid)) {
+      const local=notes.find(x=>x.uuid===n.uuid);
+      if (local&&new Date(n.updatedAt)>new Date(local.updatedAt)) {
+        const idx=notes.indexOf(local); notes[idx]={...n,id:local.id}; updated++;
+      } else skipped++;
     } else {
-      // New note — strip the id so IndexedDB assigns a fresh one
-      const { id: _id, ...fresh } = note;
-      if (!fresh.uuid) fresh.uuid = makeUUID();
-      await dbPut(fresh);
-      imported++;
+      const {id:_,...fresh}=n; if (!fresh.uuid) fresh.uuid=makeUUID(); fresh.id=makeId();
+      notes.unshift(fresh); added++;
     }
   }
-
-  // Optionally merge incoming labels (add any new keys, don't overwrite existing names)
-  if (payload.labels) {
-    let changed = false;
-    for (const [k, v] of Object.entries(payload.labels)) {
-      if (!LABELS[k]) { LABELS[k] = v; changed = true; }
-    }
-    if (changed) persistLabels();
-  }
-
-  await renderCards();
-  buildFilterPills();
-  closeSettings();
-  toast(`Import done: ${imported} new, ${updated} updated, ${skipped} skipped`);
+  await writeNotes();
+  buildFilterPills(); renderCards(); closeSettings();
+  toast(`Import: ${added} new, ${updated} updated, ${skipped} skipped`);
 }
 
 /* ════════════════════════════════════════════════════════
    MARKDOWN EXPORT
 ════════════════════════════════════════════════════════ */
 async function exportMarkdown() {
-  const all = applySort(await dbGetAll());
-  if (!all.length) { alert('No notes to export.'); return; }
-
-  const lines = ['# CleanSlate Export', `*Exported ${new Date().toLocaleString()}*`, ''];
-  let curLabel = null;
-
+  const all=applySort(getAllNotes()); if (!all.length) { alert('No notes to export.'); return; }
+  const lines=['# CleanSlate Export',`*Exported ${new Date().toLocaleString()}*`,''];
+  let cur=null;
   for (const n of all) {
-    const lname = LABELS[n.label]?.name || 'None';
-    if (sortMode === 'label' && lname !== curLabel) {
-      curLabel = lname;
-      lines.push(`## ${lname}`, '');
-    }
-    lines.push('---', '');
-    if (n.title) lines.push(`# ${n.title}`, '');
+    const lname=LABELS[n.label]?.name||'None';
+    if (sortMode==='label'&&lname!==cur) { cur=lname; lines.push(`## ${lname}`,''); }
+    lines.push('---','');
+    if (n.title) lines.push(`# ${n.title}`,'');
     lines.push(`*${longDate(n.createdAt)}*`);
-    if (n.label && n.label !== 'none') lines.push(`*Label: ${lname}*`);
+    if (n.label&&n.label!=='none') lines.push(`*Label: ${lname}*`);
     lines.push('');
-    let body = n.content || '';
-    for (const img of (n.images || []))
-      body = body.replace(new RegExp(`img:${img.id}`, 'g'), img.data);
-    lines.push(body, '');
+    let body=n.content||'';
+    for (const img of (n.images||[])) body=body.replace(new RegExp(`img:${img.id}`,'g'),img.data);
+    lines.push(body,'');
   }
-
-  const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
-  const url  = URL.createObjectURL(blob);
-  Object.assign(document.createElement('a'), {
-    href: url,
-    download: `cleanslate-${new Date().toISOString().slice(0, 10)}.md`
-  }).click();
+  const blob=new Blob([lines.join('\n')],{type:'text/markdown'});
+  const url=URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'),{href:url,download:`cleanslate-${new Date().toISOString().slice(0,10)}.md`}).click();
   URL.revokeObjectURL(url);
 }
 
 /* ════════════════════════════════════════════════════════
    HELPERS
 ════════════════════════════════════════════════════════ */
-function renderMd(text, images = []) {
-  let md = text;
-  for (const img of images) md = md.replace(new RegExp(`img:${img.id}`, 'g'), img.data);
+function renderMd(text,images=[]) {
+  let md=text;
+  for (const img of images) md=md.replace(new RegExp(`img:${img.id}`,'g'),img.data);
   return marked.parse(md);
 }
-
-function makeUUID() {
-  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+function makeId()   { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function makeUUID() { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,9); }
+function firstLine(t='') { return t.split('\n').map(l=>l.trim()).find(Boolean)||''; }
+function stripMd(t='') {
+  return t.replace(/!\[.*?\]\(.*?\)/g,'').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
+    .replace(/#{1,6}\s/g,'').replace(/(\*\*|__)(.*?)\1/g,'$2')
+    .replace(/(\*|_)(.*?)\1/g,'$2').replace(/~~(.*?)~~/g,'$1')
+    .replace(/`+([^`]+)`+/g,'$1').replace(/^\s*[-*+>]\s/gm,'')
+    .replace(/^\s*\d+\.\s/gm,'').replace(/\n+/g,' ').trim();
 }
-
-function firstLine(t = '') {
-  return t.split('\n').map(l => l.trim()).find(Boolean) || '';
-}
-
-function stripMd(t = '') {
-  return t
-    .replace(/!\[.*?\]\(.*?\)/g, '')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/#{1,6}\s/g, '')
-    .replace(/(\*\*|__)(.*?)\1/g, '$2')
-    .replace(/(\*|_)(.*?)\1/g, '$2')
-    .replace(/~~(.*?)~~/g, '$1')
-    .replace(/`+([^`]+)`+/g, '$1')
-    .replace(/^\s*[-*+>]\s/gm, '')
-    .replace(/^\s*\d+\.\s/gm, '')
-    .replace(/\n+/g, ' ').trim();
-}
-
 function relDate(iso) {
   if (!iso) return '';
-  const d = new Date(iso), diff = Date.now() - d;
-  if (diff < 60e3)      return 'just now';
-  if (diff < 3600e3)    return Math.floor(diff / 60e3)   + 'm ago';
-  if (diff < 86400e3)   return Math.floor(diff / 3600e3)  + 'h ago';
-  if (diff < 7*86400e3) return Math.floor(diff / 86400e3) + 'd ago';
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const d=new Date(iso),diff=Date.now()-d;
+  if (diff<60e3)      return 'just now';
+  if (diff<3600e3)    return Math.floor(diff/60e3)+'m ago';
+  if (diff<86400e3)   return Math.floor(diff/3600e3)+'h ago';
+  if (diff<7*86400e3) return Math.floor(diff/86400e3)+'d ago';
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
 }
-
 function longDate(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  return new Date(iso).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});
 }
-
-function escH(s = '') {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-let toastTimer;
+function escH(s='') { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let _tt;
 function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),2800);
 }
 
 /* ════════════════════════════════════════════════════════
    SERVICE WORKER
 ════════════════════════════════════════════════════════ */
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
-}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
 /* ════════════════════════════════════════════════════════
    BOOT
 ════════════════════════════════════════════════════════ */
-openDB().then(() => {
-  buildFilterPills();
-  renderCards();
-});
+boot();
 </script>
 </body>
 </html>
