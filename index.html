@@ -253,17 +253,17 @@
     #md-toolbar button {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 6px; padding: 5px 8px; font-size: 12px; font-weight: 700;
-      color: var(--text); cursor: pointer; font-family: 'Courier New', monospace; line-height: 1;
+      color: var(--text); cursor: pointer; font-family: var(--font); line-height: 1;
     }
     #md-toolbar .tb-sep { width: 1px; background: var(--border); margin: 2px 4px; align-self: stretch; flex-shrink: 0; }
     #md-toolbar .tb-img { font-size: 15px; font-family: var(--font); font-weight: 400; padding: 4px 7px; }
     #note-content {
       width: 100%; flex: 1; min-height: 160px;
       background: none; border: none; outline: none; resize: none;
-      font-size: 14px; line-height: 1.7; color: var(--text);
-      font-family: 'Courier New', Courier, monospace;
+      font-size: 15px; line-height: 1.75; color: var(--text);
+      font-family: var(--font); font-weight: 500;
     }
-    #note-content::placeholder { color: var(--muted); font-family: var(--font); font-size: 14px; }
+    #note-content::placeholder { color: var(--muted); font-size: 14px; font-weight: 400; }
 
     /* markdown render */
     .md-render { font-size: 14px; line-height: 1.75; color: var(--text); font-family: var(--font); }
