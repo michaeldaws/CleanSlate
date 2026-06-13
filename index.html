@@ -173,10 +173,10 @@
       font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.5;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
-    .card-footer { display: flex; align-items: center; gap: 8px; margin-top: 9px; }
-    .card-badge  { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; color: white; }
-    .card-date   { font-size: 11px; font-weight: 500; color: var(--muted); flex: 1; text-align: right; }
-    .card-thumbs { display: flex; gap: 4px; }
+    .card-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .card-badge  { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; color: white; flex-shrink: 0; }
+    .card-date   { font-size: 11px; font-weight: 500; color: var(--muted); margin-left: auto; }
+    .card-thumbs { display: flex; gap: 4px; margin-top: 7px; }
     .card-thumb  { width: 30px; height: 30px; object-fit: cover; border-radius: 5px; }
 
     /* ── FAB ───────────────────────────────────────────── */
@@ -788,9 +788,13 @@ function renderCards() {
     return `<div class="card" onclick="viewNote('${n.id}')">
       <div class="card-bar" style="background:${hasL?lbl.color:'var(--border)'}"></div>
       <div class="card-body">
+        <div class="card-header">
+          ${badge}
+          <span class="card-date">${relDate(n.createdAt)}</span>
+        </div>
         <div class="card-title">${title}</div>
         ${prev?`<div class="card-preview">${prev}</div>`:''}
-        <div class="card-footer">${badge}<span class="card-date">${relDate(n.createdAt)}</span><div class="card-thumbs">${thumbs}</div></div>
+        ${thumbs?`<div class="card-thumbs">${thumbs}</div>`:''}
       </div>
     </div>`;
   }).join('');
