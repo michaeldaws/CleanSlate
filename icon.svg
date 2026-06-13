@@ -1,7 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="40" fill="#6366f1"/>
-  <rect x="48" y="52" width="96" height="12" rx="6" fill="white" opacity="0.9"/>
-  <rect x="48" y="78" width="80" height="10" rx="5" fill="white" opacity="0.7"/>
-  <rect x="48" y="102" width="88" height="10" rx="5" fill="white" opacity="0.7"/>
-  <rect x="48" y="126" width="64" height="10" rx="5" fill="white" opacity="0.5"/>
+  <!-- App background -->
+  <rect width="192" height="192" rx="40" fill="#1e293b"/>
+
+  <!-- Slate board -->
+  <rect x="16" y="22" width="148" height="116" rx="5" fill="#0f172a"/>
+
+  <!-- Wooden frame -->
+  <rect x="16" y="22"  width="148" height="14" rx="5" fill="#78350f"/>
+  <rect x="16" y="124" width="148" height="14" rx="5" fill="#78350f"/>
+  <rect x="16" y="22"  width="14"  height="116" fill="#78350f"/>
+  <rect x="150" y="22" width="14"  height="116" fill="#78350f"/>
+  <!-- Frame corner rounding fix -->
+  <rect x="22" y="28"  width="4"  height="4"  fill="#78350f"/>
+  <rect x="154" y="28" width="4"  height="4"  fill="#78350f"/>
+
+  <!-- Chalk lines on slate (writing) -->
+  <line x1="46" y1="64"  x2="148" y2="64"  stroke="#e2e8f0" stroke-width="5"  stroke-linecap="round" opacity="0.85"/>
+  <line x1="46" y1="84"  x2="122" y2="84"  stroke="#e2e8f0" stroke-width="5"  stroke-linecap="round" opacity="0.6"/>
+  <line x1="46" y1="104" x2="134" y2="104" stroke="#e2e8f0" stroke-width="5"  stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Chalk piece (bottom-right, angled ~-40deg) -->
+  <g transform="translate(152,160) rotate(-40)">
+    <!-- Body -->
+    <rect x="-8" y="-28" width="16" height="56" rx="5" fill="#f1f5f9"/>
+    <!-- Shaded side -->
+    <rect x="3"  y="-28" width="5"  height="56" rx="2" fill="#cbd5e1" opacity="0.5"/>
+    <!-- Tip -->
+    <polygon points="-8,28 8,28 5,40 -5,40" fill="#e2e8f0"/>
+    <!-- Highlight -->
+    <rect x="-5" y="-24" width="3" height="48" rx="1.5" fill="white" opacity="0.45"/>
+  </g>
+
+  <!-- Chalk dust specks -->
+  <circle cx="138" cy="168" r="2.5" fill="#e2e8f0" opacity="0.55"/>
+  <circle cx="144" cy="173" r="1.5" fill="#e2e8f0" opacity="0.4"/>
+  <circle cx="133" cy="172" r="1.8" fill="#e2e8f0" opacity="0.35"/>
 </svg>

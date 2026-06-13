@@ -1,12 +1,12 @@
 {
-  "name": "Notes",
-  "short_name": "Notes",
-  "description": "Personal notes with markdown, tags, and images",
+  "name": "CleanSlate",
+  "short_name": "CleanSlate",
+  "description": "Personal notes with markdown, labels, and images",
   "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f5f5f7",
-  "theme_color": "#6366f1",
+  "background_color": "#0f172a",
+  "theme_color": "#1e293b",
   "icons": [
     {
       "src": "icon.svg",
