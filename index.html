@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Notes">
+  <title>Notes</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+  <style>
+    /* ── Variables ─────────────────────────────────────── */
+    :root {
+      --accent:   #6366f1;
+      --accent2:  #4f46e5;
+      --bg:       #f5f5f7;
+      --surface:  #ffffff;
+      --text:     #111827;
+      --muted:    #6b7280;
+      --border:   #e5e7eb;
+      --shadow:   0 1px 4px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.05);
+      --radius:   14px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bot: env(safe-area-inset-bottom, 0px);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:      #0f172a;
+        --surface: #1e293b;
+        --text:    #f1f5f9;
+        --muted:   #94a3b8;
+        --border:  #334155;
+        --shadow:  0 1px 4px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.2);
+      }
+    }
+
+    /* ── Reset ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Header ────────────────────────────────────────── */
+    #app-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: calc(12px + var(--safe-top)) 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #app-header h1 {
+      flex: 1;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+    .hdr-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* ── Search ────────────────────────────────────────── */
+    #search-wrap {
+      padding: 10px 16px 4px;
+    }
+    #search-input {
+      width: 100%;
+      padding: 9px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+    }
+    #search-input:focus { border-color: var(--accent); }
+
+    /* ── Card list ─────────────────────────────────────── */
+    #cards-list {
+      padding: 10px 16px calc(80px + var(--safe-bot));
+      display: grid;
+      gap: 10px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 52px; margin-bottom: 12px; }
+    .empty-msg  { font-size: 14px; line-height: 1.5; }
+
+    /* ── Card ──────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .12s, box-shadow .12s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .card:active { transform: scale(0.975); box-shadow: none; }
+    .card-bar   { height: 6px; }
+    .card-body  { padding: 12px 14px 10px; }
+    .card-title {
+      font-size: 15px;
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .card-preview {
+      font-size: 13px;
+      color: var(--muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.5;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 9px;
+    }
+    .card-date  { font-size: 11px; color: var(--muted); flex: 1; }
+    .card-thumbs { display: flex; gap: 4px; }
+    .card-thumb {
+      width: 30px;
+      height: 30px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+    /* ── FAB ───────────────────────────────────────────── */
+    #fab {
+      position: fixed;
+      bottom: calc(24px + var(--safe-bot));
+      right: 22px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-size: 32px;
+      line-height: 1;
+      box-shadow: 0 4px 16px rgba(99,102,241,.45);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: transform .15s;
+    }
+    #fab:active { transform: scale(0.88); }
+
+    /* ── Modal (shared) ────────────────────────────────── */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .modal.open { transform: translateY(0); }
+
+    /* ── Editor header ─────────────────────────────────── */
+    #editor-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: calc(10px + var(--safe-top)) 14px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--text);
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+    #editor-label { flex: 1; font-size: 15px; font-weight: 700; }
+    .btn-outline {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 5px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .btn-accent {
+      background: var(--accent);
+      border: none;
+      border-radius: 9px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* ── Editor body ───────────────────────────────────── */
+    #editor-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overscroll-behavior: contain;
+    }
+
+    /* ── Tag selector ──────────────────────────────────── */
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .tag-row-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .tag-dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      cursor: pointer;
+      transition: transform .12s;
+    }
+    .tag-dot.active {
+      border-color: var(--text);
+      transform: scale(1.25);
+    }
+
+    /* ── Title input ───────────────────────────────────── */
+    #note-title {
+      width: 100%;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text);
+      outline: none;
+    }
+    #note-title::placeholder { color: var(--muted); font-weight: 400; }
+
+    /* ── Markdown toolbar ──────────────────────────────── */
+    #md-toolbar {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    #md-toolbar button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* ── Content textarea ──────────────────────────────── */
+    #note-content {
+      width: 100%;
+      min-height: 180px;
+      background: none;
+      border: none;
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: var(--text);
+      outline: none;
+      resize: none;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    #note-content::placeholder { color: var(--muted); font-family: inherit; }
+
+    /* ── Markdown preview ──────────────────────────────── */
+    .md-render {
+      font-size: 14.5px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .md-render h1 { font-size: 22px; font-weight: 800; margin: 6px 0 10px; }
+    .md-render h2 { font-size: 18px; font-weight: 700; margin: 6px 0 8px; }
+    .md-render h3 { font-size: 15px; font-weight: 700; margin: 6px 0 6px; }
+    .md-render p  { margin-bottom: 10px; }
+    .md-render ul, .md-render ol { margin: 0 0 10px 22px; }
+    .md-render li { margin-bottom: 3px; }
+    .md-render code {
+      background: var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+    }
+    .md-render pre {
+      background: var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 10px;
+    }
+    .md-render pre code { background: none; padding: 0; }
+    .md-render blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 14px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .md-render a { color: var(--accent); }
+    .md-render hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+    .md-render img { max-width: 100%; border-radius: 10px; margin: 6px 0; }
+    .md-render strong { font-weight: 700; }
+    .md-render em { font-style: italic; }
+    .md-render table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+    .md-render th, .md-render td { border: 1px solid var(--border); padding: 6px 10px; font-size: 13px; }
+    .md-render th { background: var(--border); font-weight: 700; }
+
+    /* ── Image toolbar ─────────────────────────────────── */
+    #img-toolbar {
+      display: flex;
+      gap: 8px;
+    }
+    .img-btn {
+      flex: 1;
+      padding: 9px 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    /* ── Editor image grid ─────────────────────────────── */
+    #editor-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .eimg-wrap { position: relative; }
+    .eimg-wrap img {
+      width: 76px;
+      height: 76px;
+      object-fit: cover;
+      border-radius: 9px;
+      display: block;
+    }
+    .eimg-del {
+      position: absolute;
+      top: -7px;
+      right: -7px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── View modal ────────────────────────────────────── */
+    #view-modal .modal-header-bar { height: 6px; }
+    #view-modal .modal-topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    #view-title { flex: 1; font-size: 16px; font-weight: 700; }
+    .btn-danger {
+      background: none;
+      border: 1px solid #ef4444;
+      border-radius: 9px;
+      padding: 5px 12px;
+      font-size: 13px;
+      color: #ef4444;
+      cursor: pointer;
+    }
+    #view-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overscroll-behavior: contain;
+    }
+    #view-date { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<!-- ── App Header ──────────────────────────────────────── -->
+<header id="app-header">
+  <h1>📝 Notes</h1>
+  <button class="hdr-btn" onclick="exportMarkdown()">⬇ Export</button>
+</header>
+
+<!-- ── Search ─────────────────────────────────────────── -->
+<div id="search-wrap">
+  <input id="search-input" type="search" placeholder="Search notes…" autocomplete="off" oninput="renderCards()">
+</div>
+
+<!-- ── Cards ──────────────────────────────────────────── -->
+<div id="cards-list"></div>
+
+<!-- ── FAB ────────────────────────────────────────────── -->
+<button id="fab" onclick="openEditor()" title="New note">＋</button>
+
+<!-- ── Edit Modal ─────────────────────────────────────── -->
+<div class="modal" id="editor-modal">
+  <div id="editor-header">
+    <button class="icon-btn" onclick="closeEditor()">←</button>
+    <span id="editor-label">New Note</span>
+    <button class="btn-outline" id="preview-btn" onclick="togglePreview()">Preview</button>
+    <button class="btn-accent" onclick="saveNote()">Save</button>
+  </div>
+  <div id="editor-body">
+
+    <!-- Tag row -->
+    <div class="tag-row" id="tag-row"></div>
+
+    <!-- Title -->
+    <input id="note-title" type="text" placeholder="Title (optional)">
+
+    <!-- Markdown toolbar -->
+    <div id="md-toolbar">
+      <button onclick="insertMd('**','**')" title="Bold">B</button>
+      <button onclick="insertMd('*','*')" title="Italic"><em>i</em></button>
+      <button onclick="insertMd('~~','~~')" title="Strikethrough"><s>S</s></button>
+      <button onclick="insertMd('\n# ','')" title="Heading 1">H1</button>
+      <button onclick="insertMd('\n## ','')" title="Heading 2">H2</button>
+      <button onclick="insertMd('\n### ','')" title="Heading 3">H3</button>
+      <button onclick="insertMd('\n- ','')" title="Bullet list">•</button>
+      <button onclick="insertMd('\n1. ','')" title="Numbered list">1.</button>
+      <button onclick="insertMd('\n> ','')" title="Quote">❝</button>
+      <button onclick="insertMd('`','`')" title="Inline code">&#96;&#96;</button>
+      <button onclick="insertMd('\n```\n','\n```')" title="Code block">{ }</button>
+      <button onclick="insertMd('[','](url)')" title="Link">🔗</button>
+      <button onclick="insertMd('\n---\n','')" title="Divider">—</button>
+    </div>
+
+    <!-- Textarea -->
+    <textarea id="note-content"
+      placeholder="Write in Markdown…&#10;&#10;**bold**  *italic*  ~~strikethrough~~&#10;# Heading  ## Subheading&#10;- list item&#10;1. numbered&#10;> blockquote&#10;`code`"></textarea>
+
+    <!-- Markdown preview (hidden by default) -->
+    <div class="md-render" id="md-preview" style="display:none"></div>
+
+    <!-- Image toolbar -->
+    <div id="img-toolbar">
+      <button class="img-btn" onclick="document.getElementById('file-input').click()">📁 File</button>
+      <button class="img-btn" onclick="document.getElementById('cam-input').click()">📷 Camera</button>
+      <button class="img-btn" onclick="pasteClipboard()">📋 Paste</button>
+    </div>
+    <input id="file-input" type="file" accept="image/*"                  style="display:none" onchange="handleFile(event)">
+    <input id="cam-input"  type="file" accept="image/*" capture="environment" style="display:none" onchange="handleFile(event)">
+
+    <!-- Attached images -->
+    <div id="editor-images"></div>
+  </div>
+</div>
+
+<!-- ── View Modal ──────────────────────────────────────── -->
+<div class="modal" id="view-modal">
+  <div class="modal-header-bar" id="view-tag-bar"></div>
+  <div class="modal-topbar">
+    <button class="icon-btn" onclick="closeView()">←</button>
+    <span id="view-title"></span>
+    <button class="btn-outline" onclick="editViewing()">Edit</button>
+    <button class="btn-danger"  onclick="deleteViewing()">Delete</button>
+  </div>
+  <div id="view-body"></div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   TAG DEFINITIONS
+════════════════════════════════════════════════════════ */
+const TAGS = {
+  none:   { color: '#c4c4c4', label: 'None'   },
+  red:    { color: '#ef4444', label: 'Red'    },
+  orange: { color: '#f97316', label: 'Orange' },
+  yellow: { color: '#eab308', label: 'Yellow' },
+  green:  { color: '#22c55e', label: 'Green'  },
+  teal:   { color: '#14b8a6', label: 'Teal'   },
+  blue:   { color: '#3b82f6', label: 'Blue'   },
+  purple: { color: '#a855f7', label: 'Purple' },
+  pink:   { color: '#ec4899', label: 'Pink'   },
+};
+
+/* ════════════════════════════════════════════════════════
+   INDEXEDDB
+════════════════════════════════════════════════════════ */
+let db;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open('notesApp', 1);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('notes')) {
+        const s = d.createObjectStore('notes', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('createdAt', 'createdAt');
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; res(); };
+    req.onerror   = rej;
+  });
+}
+
+function dbGetAll() {
+  return new Promise((res, rej) => {
+    const tx  = db.transaction('notes', 'readonly');
+    const req = tx.objectStore('notes').getAll();
+    req.onsuccess = () => res(req.result.reverse()); // newest first
+    req.onerror   = rej;
+  });
+}
+
+function dbPut(note) {
+  return new Promise((res, rej) => {
+    const tx  = db.transaction('notes', 'readwrite');
+    const req = note.id ? tx.objectStore('notes').put(note)
+                        : tx.objectStore('notes').add(note);
+    req.onsuccess = () => res(req.result);
+    req.onerror   = rej;
+  });
+}
+
+function dbDelete(id) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction('notes', 'readwrite');
+    tx.objectStore('notes').delete(id).onsuccess = res;
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════ */
+let editing   = null;   // note being edited (or null for new)
+let edImages  = [];     // [{id,data,mime}] in current editor session
+let viewing   = null;   // note being viewed
+let previewing = false;
+
+/* ════════════════════════════════════════════════════════
+   CARD LIST
+════════════════════════════════════════════════════════ */
+async function renderCards() {
+  const all = await dbGetAll();
+  const q   = (document.getElementById('search-input').value || '').toLowerCase().trim();
+  const list = q
+    ? all.filter(n => (n.title + ' ' + n.content).toLowerCase().includes(q))
+    : all;
+
+  const el = document.getElementById('cards-list');
+
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <div class="empty-msg">${q ? 'No notes match your search.' : 'No notes yet.<br>Tap <strong>+</strong> to create one.'}</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(n => {
+    const tag   = TAGS[n.tag] || TAGS.none;
+    const bar   = n.tag && n.tag !== 'none'
+                  ? `background:${tag.color}`
+                  : 'background:var(--border)';
+    const title   = escH(n.title || firstLine(n.content) || 'Untitled');
+    const preview = escH(n.title ? stripMd(n.content) : stripMd(n.content).slice(0, 120));
+    const thumbs  = (n.images || []).slice(0, 3)
+                    .map(i => `<img class="card-thumb" src="${i.data}" alt="">`)
+                    .join('');
+    return `
+      <div class="card" onclick="viewNote(${n.id})">
+        <div class="card-bar" style="${bar}"></div>
+        <div class="card-body">
+          <div class="card-title">${title}</div>
+          ${preview ? `<div class="card-preview">${preview}</div>` : ''}
+          <div class="card-footer">
+            <span class="card-date">${relDate(n.createdAt)}</span>
+            <div class="card-thumbs">${thumbs}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════════════
+   EDITOR — OPEN / CLOSE
+════════════════════════════════════════════════════════ */
+function openEditor(note = null) {
+  editing   = note;
+  edImages  = note ? (note.images || []).map(i => ({ ...i })) : [];
+  previewing = false;
+
+  document.getElementById('editor-label').textContent = note ? 'Edit Note' : 'New Note';
+  document.getElementById('note-title').value         = note?.title   || '';
+  document.getElementById('note-content').value       = note?.content || '';
+  document.getElementById('note-content').style.display = '';
+  document.getElementById('md-preview').style.display   = 'none';
+  document.getElementById('preview-btn').textContent    = 'Preview';
+
+  buildTagRow(note?.tag || 'none');
+  renderEdImages();
+  document.getElementById('editor-modal').classList.add('open');
+  setTimeout(() => document.getElementById('note-content').focus(), 350);
+}
+
+function closeEditor() {
+  document.getElementById('editor-modal').classList.remove('open');
+  editing  = null;
+  edImages = [];
+}
+
+/* ── Tag row ─────────────────────────────────────────── */
+function buildTagRow(sel) {
+  document.getElementById('tag-row').innerHTML =
+    `<span class="tag-row-label">Tag</span>` +
+    Object.entries(TAGS).map(([k, v]) =>
+      `<div class="tag-dot ${k === sel ? 'active' : ''}"
+        data-tag="${k}"
+        style="background:${v.color}"
+        title="${v.label}"
+        onclick="pickTag('${k}')"></div>`
+    ).join('');
+}
+
+function pickTag(key) {
+  document.querySelectorAll('.tag-dot').forEach(d => d.classList.remove('active'));
+  document.querySelector(`.tag-dot[data-tag="${key}"]`).classList.add('active');
+}
+
+function getTag() {
+  const sel = document.querySelector('.tag-dot.active');
+  return sel ? sel.dataset.tag : 'none';
+}
+
+/* ── Save ────────────────────────────────────────────── */
+async function saveNote() {
+  const title   = document.getElementById('note-title').value.trim();
+  const content = document.getElementById('note-content').value.trim();
+  const tag     = getTag();
+
+  if (!title && !content && !edImages.length) {
+    alert('Nothing to save — write something first.');
+    return;
+  }
+
+  const note = {
+    ...(editing?.id ? { id: editing.id } : {}),
+    title,
+    content,
+    tag,
+    images:    edImages,
+    createdAt: editing?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  await dbPut(note);
+  closeEditor();
+  renderCards();
+}
+
+/* ── Preview toggle ──────────────────────────────────── */
+function togglePreview() {
+  previewing = !previewing;
+  const ta  = document.getElementById('note-content');
+  const pre = document.getElementById('md-preview');
+  const btn = document.getElementById('preview-btn');
+  if (previewing) {
+    pre.innerHTML = renderMd(ta.value, edImages);
+    ta.style.display  = 'none';
+    pre.style.display = '';
+    btn.textContent   = 'Edit';
+  } else {
+    ta.style.display  = '';
+    pre.style.display = 'none';
+    btn.textContent   = 'Preview';
+  }
+}
+
+/* ── Markdown toolbar helpers ────────────────────────── */
+function insertMd(before, after) {
+  const ta    = document.getElementById('note-content');
+  const start = ta.selectionStart;
+  const end   = ta.selectionEnd;
+  const sel   = ta.value.substring(start, end);
+  ta.value    = ta.value.substring(0, start) + before + sel + after + ta.value.substring(end);
+  ta.focus();
+  ta.selectionStart = start + before.length;
+  ta.selectionEnd   = start + before.length + sel.length;
+}
+
+/* ════════════════════════════════════════════════════════
+   IMAGES
+════════════════════════════════════════════════════════ */
+function handleFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => addImage(ev.target.result, f.type);
+  r.readAsDataURL(f);
+  e.target.value = '';
+}
+
+async function pasteClipboard() {
+  try {
+    const items = await navigator.clipboard.read();
+    for (const item of items) {
+      const t = item.types.find(x => x.startsWith('image/'));
+      if (t) {
+        const blob = await item.getType(t);
+        const r = new FileReader();
+        r.onload = ev => addImage(ev.target.result, t);
+        r.readAsDataURL(blob);
+        return;
+      }
+    }
+    alert('No image found in clipboard. Make sure you copied an image first.');
+  } catch {
+    alert('Clipboard paste requires HTTPS.\nUse "File" or "Camera" instead, or host the app online (see instructions).');
+  }
+}
+
+function addImage(dataUrl, mime) {
+  const id = 'i' + Date.now() + Math.random().toString(36).slice(2, 7);
+  edImages.push({ id, data: dataUrl, mime });
+  // Insert markdown placeholder at cursor
+  const ta  = document.getElementById('note-content');
+  const pos = ta.selectionStart ?? ta.value.length;
+  const tag = `\n![image](img:${id})\n`;
+  ta.value  = ta.value.substring(0, pos) + tag + ta.value.substring(pos);
+  renderEdImages();
+}
+
+function removeImage(id) {
+  edImages = edImages.filter(i => i.id !== id);
+  const ta = document.getElementById('note-content');
+  ta.value = ta.value.replace(new RegExp(`\\n?!\\[image\\]\\(img:${id}\\)\\n?`, 'g'), '');
+  renderEdImages();
+}
+
+function renderEdImages() {
+  document.getElementById('editor-images').innerHTML =
+    edImages.map(i => `
+      <div class="eimg-wrap">
+        <img src="${i.data}" alt="">
+        <button class="eimg-del" onclick="removeImage('${i.id}')">×</button>
+      </div>`
+    ).join('');
+}
+
+/* ════════════════════════════════════════════════════════
+   VIEW NOTE
+════════════════════════════════════════════════════════ */
+async function viewNote(id) {
+  const all = await dbGetAll();
+  viewing   = all.find(n => n.id === id);
+  if (!viewing) return;
+
+  const tag = TAGS[viewing.tag] || TAGS.none;
+  const bar = viewing.tag && viewing.tag !== 'none' ? tag.color : 'var(--border)';
+
+  document.getElementById('view-tag-bar').style.background = bar;
+  document.getElementById('view-title').textContent =
+    viewing.title || longDate(viewing.createdAt);
+
+  document.getElementById('view-body').innerHTML = `
+    <p id="view-date">${longDate(viewing.createdAt)}</p>
+    <div class="md-render">${renderMd(viewing.content || '', viewing.images)}</div>
+  `;
+
+  document.getElementById('view-modal').classList.add('open');
+}
+
+function closeView() {
+  document.getElementById('view-modal').classList.remove('open');
+  viewing = null;
+}
+
+function editViewing() {
+  const n = viewing;
+  closeView();
+  setTimeout(() => openEditor(n), 300);
+}
+
+async function deleteViewing() {
+  if (!viewing || !confirm('Delete this note? This cannot be undone.')) return;
+  await dbDelete(viewing.id);
+  closeView();
+  renderCards();
+}
+
+/* ════════════════════════════════════════════════════════
+   EXPORT
+════════════════════════════════════════════════════════ */
+async function exportMarkdown() {
+  const all = await dbGetAll();
+  if (!all.length) { alert('No notes to export.'); return; }
+
+  const lines = [
+    '# Notes Export',
+    `*Exported ${new Date().toLocaleString()}*`,
+    '',
+  ];
+
+  for (const n of [...all].reverse()) {
+    lines.push('---', '');
+    if (n.title) lines.push(`# ${n.title}`, '');
+    lines.push(`*${longDate(n.createdAt)}*`);
+    if (n.tag && n.tag !== 'none') lines.push(`*Tag: ${n.tag}*`);
+    lines.push('');
+
+    // Resolve image placeholders → data URIs
+    let body = n.content || '';
+    for (const img of (n.images || [])) {
+      body = body.replace(
+        new RegExp(`img:${img.id}`, 'g'),
+        img.data
+      );
+    }
+    lines.push(body, '');
+  }
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), {
+    href: url,
+    download: `notes-${new Date().toISOString().slice(0, 10)}.md`
+  });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ════════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════════ */
+
+/** Render markdown, resolving img:ID placeholders from image array */
+function renderMd(text, images = []) {
+  let md = text;
+  for (const img of images) {
+    md = md.replace(new RegExp(`img:${img.id}`, 'g'), img.data);
+  }
+  return marked.parse(md);
+}
+
+function firstLine(t = '') {
+  return t.split('\n').map(l => l.trim()).find(Boolean) || '';
+}
+
+function stripMd(t = '') {
+  return t
+    .replace(/!\[.*?\]\(.*?\)/g, '')       // images
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links
+    .replace(/#{1,6}\s/g, '')
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    .replace(/~~(.*?)~~/g, '$1')
+    .replace(/`+([^`]+)`+/g, '$1')
+    .replace(/^\s*[-*+>]\s/gm, '')
+    .replace(/^\s*\d+\.\s/gm, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
+
+function relDate(iso) {
+  if (!iso) return '';
+  const d    = new Date(iso);
+  const diff = Date.now() - d;
+  if (diff < 60e3)   return 'just now';
+  if (diff < 3600e3) return Math.floor(diff / 60e3) + 'm ago';
+  if (diff < 86400e3) return Math.floor(diff / 3600e3) + 'h ago';
+  if (diff < 7 * 86400e3) return Math.floor(diff / 86400e3) + 'd ago';
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function longDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleString(undefined, {
+    dateStyle: 'medium', timeStyle: 'short'
+  });
+}
+
+function escH(s = '') {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ════════════════════════════════════════════════════════
+   SERVICE WORKER REGISTRATION
+════════════════════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+/* ════════════════════════════════════════════════════════
+   BOOT
+════════════════════════════════════════════════════════ */
+openDB().then(renderCards);
+</script>
+</body>
+</html>
